@@ -9,7 +9,7 @@ import chart_studio.plotly as py
 from plotly import graph_objs as go
 from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
 
-from google.colab import auth
+#from google.colab import auth
 from google.cloud import bigquery
 
 #import oauth2client

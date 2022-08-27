@@ -1,3 +1,4 @@
 neuralprophet
 chart_studio
+google.cloud
 google-cloud-secret-manager
