@@ -1,0 +1,5 @@
+
+protobuf==3.19.0*
+neuralprophet
+chart_studio
+google-cloud-secret-manager
