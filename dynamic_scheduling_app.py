@@ -154,8 +154,25 @@ def get_forecast(choose_episode, choose_hours):
     future = m.make_future_dataframe(data, periods=choose_hours, n_historic_predictions=len(data)) 
     prediction = m.predict(future)
 
-    prediction['yhat_lower'] = prediction['yhat1']*0.95
-    prediction['yhat_upper'] = prediction['yhat1']*1.05
+    #Get Confidence Interval upper/lower bounds (0.95)
+    y = prediction['yhat1']
+    average_data = []
+    for ind in range(len(y)):
+      average_data.append(np.mean(y[0:ind+1]))
+
+    prediction['running_mean'] = average_data
+
+    std_data = []
+    for ind in range(len(y)):
+      std_data.append(np.std(y[0:ind+1]))
+
+    prediction['running_std'] = std_data
+
+    prediction['n'] = prediction.index.to_list()
+    prediction['n'] = prediction['n'] + 1
+    prediction['ci'] = 1.96 * prediction['running_std'] / np.sqrt(prediction['n'])
+    prediction['yhat_lower'] = prediction['yhat1'] - prediction['ci']
+    prediction['yhat_upper'] = prediction['yhat1'] + prediction['ci']
 
     #Visualize Model 
     yhat = go.Scatter(x = prediction['ds'], 
