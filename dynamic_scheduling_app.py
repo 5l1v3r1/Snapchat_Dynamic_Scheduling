@@ -42,7 +42,7 @@ st.markdown(css_background,unsafe_allow_html=True)
 
 # Create API client.
 credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-client = bigquery.Client(credentials=credentials)
+#client = bigquery.Client(credentials=credentials)
 
 #Ignore warning
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -126,7 +126,8 @@ def update_data():
                   AND published_at >= '2022-01-01'
                   ORDER BY name ASC, story_id, ranking ASC;''')
   
-    df = client.query(sql_query).to_dataframe()
+    #df = client.query(sql_query).to_dataframe()
+    df = pandas.read_gbq(sql_query, credentials = credentials)
     return df
 
 #Allow to collect cache for forecast function
