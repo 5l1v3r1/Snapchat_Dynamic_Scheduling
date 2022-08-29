@@ -319,7 +319,7 @@ def crossvalidate_five(tts_episode):
 menu = ["Topsnap Forecast", "ML Test & Validate"]
 choice = st.sidebar.selectbox("Menu", menu)
 
-st.write("*Forecasting is powered by hourly BigQuery data - refresh or re-open the webpage to update data when needed*")
+st.write("*Forecasting is powered by hourly BigQuery data, refreshed every 30 minutes*")
 
 if choice == 'Topsnap Forecast':
     
@@ -329,8 +329,8 @@ if choice == 'Topsnap Forecast':
     about_bar = st.expander("**About This Section**")
     about_bar.markdown("""
                         * The interactive chart below showcases the predicted forecast of topsnaps for your chosen episode (blue line) vs. actual values (white circle) as well as forecasted values into the future using a Neural Network.
-                        * Input the episode's Story ID number and number of hours you would like to forecast in the future for the model to run.
-                        * Once the model has loaded, press the "Forecast Topsnaps" button to visualize the results.
+                        * Input the episode's Story ID and number of hours you would like to forecast in the future.
+                        * Click the "Forecast Topsnaps" button to run the model and visualize the results.
 
                         **NOTE: The number of hours to forecast should always remain at 24 hours or below - a general rule of thumb is that the number of hours forecasted should always be lower than the number of hours we currently have data for**
                        """)
