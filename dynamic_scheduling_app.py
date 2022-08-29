@@ -126,7 +126,6 @@ def update_data():
                   AND published_at >= '2022-01-01'
                   ORDER BY name ASC, story_id, ranking ASC;''')
   
-    #df = client.query(sql_query).to_dataframe()
     df = pd.read_gbq(sql_query, credentials = credentials)
     return df
 
@@ -227,6 +226,7 @@ def plot_loss(tts_episode):
     data = data.loc[:, ['interval_time', 'topsnap_views']]
     data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
     data = data.drop_duplicates(subset='ds')
+    data = data.astype({'y' : 'int32'})
 
     df_train, df_test = model.split_df(df=data, freq="H", valid_p=0.2)
 
@@ -244,6 +244,7 @@ def test_metrics(tts_episode):
     data = data.loc[:, ['interval_time', 'topsnap_views']]
     data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
     data = data.drop_duplicates(subset='ds')
+    data = data.astype({'y' : 'int32'})
 
     df_train, df_test = model.split_df(df=data, freq="H", valid_p=0.2)
 
@@ -257,6 +258,7 @@ def crossvalidate_three(tts_episode):
   new_data = data.loc[:, ['interval_time', 'topsnap_views']]
   new_data = new_data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
   new_data = new_data.drop_duplicates(subset='ds')
+  new_data = new_data.astype({'y' : 'int32'})
 
   episode_name = data.head(1)['title'].values[0]
   test = Dataset(df=new_data, name=episode_name, freq='MS')
@@ -286,6 +288,7 @@ def crossvalidate_five(tts_episode):
   new_data = data.loc[:, ['interval_time', 'topsnap_views']]
   new_data = new_data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
   new_data = new_data.drop_duplicates(subset='ds')
+  new_data = new_data.astype({'y' : 'int32'})
 
   episode_name = data.head(1)['title'].values[0]
   test = Dataset(df=new_data, name=episode_name, freq='MS')
