@@ -50,10 +50,10 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 #Creating Functions 
 
 #Allow to collect cache for update data function
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 
 # Uses st.experimental_memo to only rerun when the query changes or after 10 min.
-#@st.experimental_memo(ttl=600)
+@st.experimental_memo(ttl=600)
 
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
@@ -324,7 +324,7 @@ st.write("*Forecasting is powered by hourly BigQuery data - refresh or re-open t
 
 cache = st.button("Clear Cache")
 if cache:
-  update_data.clear()
+  caching.clear_memo_cache()
 
 if choice == 'Topsnap Forecast':
     
