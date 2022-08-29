@@ -9,15 +9,12 @@ import chart_studio.plotly as py
 from plotly import graph_objs as go
 from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
 
-#from google.colab import auth
+from google.oauth2 import service_account
 from google.cloud import bigquery
 
-#import oauth2client
-#from httpx_oauth.clients.google import GoogleOAuth2
-
-import streamlit_google_oauth as oauth
-import os
-from google.cloud import secretmanager
+#import streamlit_google_oauth as oauth
+#import os
+#from google.cloud import secretmanager
 
 #Page Configuration 
 st.set_page_config(
@@ -43,49 +40,20 @@ css_background = """
                   """
 st.markdown(css_background,unsafe_allow_html=True) 
 
-
-#Authentication
-secret_manager = secretmanager.SecretManagerServiceClient()
-
-id_path = "projects/89032299676/secrets/dynamic_clientid/versions/latest"
-secret_path = "projects/89032299676/secrets/dynamic_secret/versions/latest"
-redirect_path = "projects/89032299676/secrets/webapp_fixed_redirecturi/versions/latest"
-
-response1 = secret_manager.access_secret_version(request={"name": id_path})
-client_id = response1.payload.data.decode('UTF-8')
-
-response2 = secret_manager.access_secret_version(request={"name": secret_path})
-client_secret = response2.payload.data.decode('UTF-8')
-
-response3 = secret_manager.access_secret_version(request={"name": redirect_path})
-redirect_uri = response3.payload.data.decode('UTF-8')
-
-if __name__ == "__main__":
-    login_info = oauth.login(
-                              client_id=client_id,
-                              client_secret=client_secret,
-                              redirect_uri=redirect_uri,
-                              login_button_text="Authorize with Google Account",
-                              logout_button_text="Logout",
-                            )
-    if login_info:
-        user_id, user_email = login_info
-        st.write(f"**Welcome {user_email}**")
-    else:
-        st.write("**Please Login to access the dataset**")
-
-
-
+# Create API client.
+credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
+client = bigquery.Client(credentials=credentials)
 
 #Ignore warning
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-
-
 #Creating Functions 
 
 #Allow to collect cache for update data function
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+
+# Uses st.experimental_memo to only rerun when the query changes or after 10 min.
+@st.experimental_memo(ttl=600)
 
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
@@ -366,11 +334,9 @@ if choice == 'Topsnap Forecast':
     #Choose an episode 
     episode = st.text_input("Enter the Story ID here:", "")
     hours = st.number_input("Enter the number of hours to forecast (24 hours or below)", 0, 24)
-    #fig = get_forecast(episode, hours)
     
     forecast = st.button("Forecast Topsnaps")
     if forecast:
-      client = bigquery.Client(project='distribution-engine')
       df = update_data()
       st.plotly_chart(get_forecast(episode, hours), use_container_width=True)
 
@@ -392,26 +358,22 @@ if choice == 'ML Test & Validate':
 
     plot = st.button("Plot Loss")
     if plot:
-      client = bigquery.Client(project='distribution-engine')
       df = update_data()
       model = tts_model()
       st.line_chart(plot_loss(train_episode))
 
     testing_metrics = st.button ("Display Test Metrics")
     if testing_metrics:
-      client = bigquery.Client(project='distribution-engine')
       df = update_data()
       model = tts_model()
       st.dataframe(test_metrics(train_episode))
 
     cross_three = st.button("Cross-validate 3-folds")
     if cross_three:
-      client = bigquery.Client(project='distribution-engine')
       df = update_data()
       st.dataframe(crossvalidate_three(train_episode))
 
     cross_five = st.button("Cross-validate 5-folds")
     if cross_five:
-      client = bigquery.Client(project='distribution-engine')
       df = update_data()
       st.dataframe(crossvalidate_five(train_episode))
