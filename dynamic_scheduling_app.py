@@ -127,7 +127,7 @@ def update_data():
                   ORDER BY name ASC, story_id, ranking ASC;''')
   
     #df = client.query(sql_query).to_dataframe()
-    df = pandas.read_gbq(sql_query, credentials = credentials)
+    df = pd.read_gbq(sql_query, credentials = credentials)
     return df
 
 #Allow to collect cache for forecast function
