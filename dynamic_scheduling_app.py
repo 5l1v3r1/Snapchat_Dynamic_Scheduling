@@ -52,8 +52,8 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 #Allow to collect cache for update data function
 #@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 
-# Uses st.experimental_memo to only rerun when the query changes or after 10 min.
-@st.experimental_memo(ttl=600)
+# Uses st.experimental_memo to only rerun when the query changes or after 30 min.
+@st.experimental_memo(ttl=1800)
 
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
@@ -130,7 +130,7 @@ def update_data():
     return df
 
 #Allow to collect cache for forecast function
-@st.cache(suppress_st_warning=True, allow_output_mutation=True)
+#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 
 def get_forecast(choose_episode, choose_hours):
     #Load in episode
@@ -208,7 +208,8 @@ def get_forecast(choose_episode, choose_hours):
 
     return fig
 
-
+#Storing non-data based cache
+@st.experimental_singleton
 def tts_model():
     #Train and Test the  model
     m = NeuralProphet(num_hidden_layers=2,
@@ -321,10 +322,6 @@ menu = ["Topsnap Forecast", "ML Test & Validate"]
 choice = st.sidebar.selectbox("Menu", menu)
 
 st.write("*Forecasting is powered by hourly BigQuery data - refresh or re-open the webpage to update data when needed*")
-
-cache = st.button("Clear Cache")
-if cache:
-  caching.clear_memo_cache()
 
 if choice == 'Topsnap Forecast':
     
