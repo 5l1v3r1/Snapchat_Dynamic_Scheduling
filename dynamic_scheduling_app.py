@@ -202,9 +202,13 @@ def get_forecast(choose_episode, choose_hours):
     start = future.dropna().tail(1)['y'].values[0]
     end = prediction.tail(1)['yhat1'].values[0]
     number = round(end-start)
-  
-    fig = go.Figure(data= data, layout=layout,
-                  layout_title_text=(f'{episode_name} - {choose_hours}hr Topsnap Prediction<br>Predicted Topsnaps = {number:,}'))
+
+    fig = go.Figure(data= data, layout=layout)
+    
+    fig.update_layout(title={'text': (f'{episode_name} - {choose_hours}hr Topsnap Prediction<br>Predicted Topsnaps = {number:,}'),
+                           'y':0.92,
+                           'x':0.075,
+                           'font_size':20})
 
     return fig
 
