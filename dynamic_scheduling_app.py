@@ -208,8 +208,6 @@ def get_forecast(choose_episode, choose_hours):
 
     return fig
 
-#Storing non-data based cache
-@st.experimental_singleton
 def tts_model():
     #Train and Test the  model
     m = NeuralProphet(num_hidden_layers=2,
