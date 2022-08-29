@@ -322,6 +322,10 @@ choice = st.sidebar.selectbox("Menu", menu)
 
 st.write("*Forecasting is powered by hourly BigQuery data - refresh or re-open the webpage to update data when needed*")
 
+cache = st.button("Clear Cache")
+if cache:
+  update_data.clear()
+
 if choice == 'Topsnap Forecast':
     
     # Create dropdown-menu / interactive forecast graph
