@@ -1,2 +1,2 @@
 # Snapchat Dynamic Scheduling 
-## Predicting Episode Performance through a Neural Network
+*Predicting Snapchat episode performance through a Neural Network
