@@ -129,9 +129,6 @@ def update_data():
     df = pd.read_gbq(sql_query, credentials = credentials)
     return df
 
-#Allow to collect cache for forecast function
-#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
-
 def get_forecast(choose_episode, choose_hours):
     #Load in episode
     data = df[df['story_id'].isin([choose_episode])]
@@ -155,16 +152,16 @@ def get_forecast(choose_episode, choose_hours):
     prediction = m.predict(future)
 
     #Get Confidence Interval upper/lower bounds (0.95)
-    y = prediction['yhat1']
+    bounds = prediction['yhat1']
     average_data = []
-    for ind in range(len(y)):
-      average_data.append(np.mean(y[0:ind+1]))
+    for ind in range(len(bounds)):
+      average_data.append(np.mean(bounds[0:ind+1]))
 
     prediction['running_mean'] = average_data
 
     std_data = []
-    for ind in range(len(y)):
-      std_data.append(np.std(y[0:ind+1]))
+    for ind in range(len(bounds)):
+      std_data.append(np.std(bounds[0:ind+1]))
 
     prediction['running_std'] = std_data
 
@@ -177,7 +174,6 @@ def get_forecast(choose_episode, choose_hours):
     #Visualize Model 
     yhat = go.Scatter(x = prediction['ds'], 
                     y = prediction['yhat1'],
-                    #y = prediction['yhat24'], 
                     mode = 'lines',
                     marker = {'color': 'blue'},
                     line = {'width': 4},
@@ -187,14 +183,12 @@ def get_forecast(choose_episode, choose_hours):
                           y = prediction['yhat_lower'],
                           marker = {'color': 'powderblue'},
                           showlegend = False,
-                          #hoverinfo = 'none',
                           )
     yhat_upper = go.Scatter(x = prediction['ds'],
                           y = prediction['yhat_upper'],
                           fill='tonexty',
                           fillcolor = 'powderblue',
                           name = 'Confidence (95%)',
-                          #hoverinfo = 'yhat_upper',
                           mode = 'none'
                           )
     actual = go.Scatter(x = data['ds'],
