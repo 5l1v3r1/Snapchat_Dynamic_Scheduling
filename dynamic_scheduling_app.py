@@ -50,7 +50,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 #Creating Functions 
 
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
-@st.experimental_memo(_credentials, ttl=1800)
+@st.experimental_memo(_sql_query, ttl=1800)
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
                   non_fin.*,
