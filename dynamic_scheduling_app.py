@@ -146,7 +146,7 @@ def get_forecast(choose_episode, choose_hours):
     fig = go.Figure(data= data, layout=layout)
     
     fig.update_layout(title={'text': (f'<b>{episode_name}</b><br>{choose_hours}hr Topsnap Prediction = {number:,}<br>Last 24hrs Predicted Topsnaps = {last_24:,}'),
-                           'y':0.92,
+                           'y':0.88,
                            'x':0.075,
                            'font_size':20})
 
@@ -177,6 +177,7 @@ def plot_loss(tts_episode):
     metrics_test = model.test(df=df_test)
     
     plot_metrics = metrics_train[['MSELoss', 'MSELoss_val']]
+    plot_metrcs = plot_metrics.rename(columns={'MSELoss': 'Train', 'MSELoss_val':'Test'})
     plot_metrics = np.log(plot_metrics)
 
     return plot_metrics
