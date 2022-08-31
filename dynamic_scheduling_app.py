@@ -129,16 +129,23 @@ def get_forecast(choose_episode, choose_hours):
   
     data = [yhat_lower, yhat_upper, yhat, actual]
 
+    #Get episode name
     episode_name = df[df['story_id'].isin([choose_episode])]
     episode_name = episode_name.head(1)['title'].values[0]
 
-    start = future.dropna().tail(1)['y'].values[0]
-    end = prediction.tail(1)['yhat1'].values[0]
-    number = round(end-start)
+    #Get values to visualize predicted performance in the title 
+    start2 = future.dropna().tail(1)['y'].values[0]
+    end2 = prediction.tail(1)['yhat1'].values[0]
+    number = round(end2-start2)
+
+    start_end = prediction.tail(24)
+    start = start_end.head(1)['yhat1'].values[0]
+    end = start_end.tail(1)['yhat1'].values[0]
+    last_24 = round(end-start)
 
     fig = go.Figure(data= data, layout=layout)
     
-    fig.update_layout(title={'text': (f'{episode_name} - {choose_hours}hr Topsnap Prediction<br>Predicted Topsnaps = {number:,}'),
+    fig.update_layout(title={'text': (f'<b>{episode_name}</b><br>{choose_hours}hr Topsnap Prediction = {number:,}<br>Last 24hrs Predicted Topsnaps = {last_24:,}'),
                            'y':0.92,
                            'x':0.075,
                            'font_size':20})
