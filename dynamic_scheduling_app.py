@@ -49,12 +49,8 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 #Creating Functions 
 
-#Allow to collect cache for update data function
-#@st.cache(suppress_st_warning=True, allow_output_mutation=True)
-
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
-@st.experimental_memo(ttl=1800)
-
+@st.experimental_memo(_credentials, ttl=1800)
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
                   non_fin.*,
@@ -167,6 +163,8 @@ def get_forecast(choose_episode, choose_hours):
 
     prediction['n'] = prediction.index.to_list()
     prediction['n'] = prediction['n'] + 1
+
+    #95% confience interval with zscore of 1.96
     prediction['ci'] = 1.96 * prediction['running_std'] / np.sqrt(prediction['n'])
     prediction['yhat_lower'] = prediction['yhat1'] - prediction['ci']
     prediction['yhat_upper'] = prediction['yhat1'] + prediction['ci']
