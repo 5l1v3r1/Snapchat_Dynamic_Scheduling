@@ -49,82 +49,6 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 #Creating Functions 
 
-# Uses st.experimental_memo to only rerun when the query changes or after 30 min.
-@st.experimental_memo(_sql_query, ttl=1800)
-def update_data():
-    sql_query = ('''WITH cte AS (SELECT
-                  non_fin.*,
-                  dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
-    
-                  FROM
-                  ( --- non-financial numbers that are not aggregated
-                        SELECT
-                        topsnap_views, 
-                        name, 
-                        title,
-                        datetime(published_at,"America/Toronto") published_at,
-                        datetime(interval_time,"America/Toronto") interval_time,
-                        story_id,
-                        --metrics
-                        avg_time_spent_per_user avg_time_spent_per_user,
-                        completion_rate completion_rate,
-                        screenshots,
-                        shares,
-                        subscribers,
-                        total_time_viewed,
-                        total_views,
-                        unique_completers,
-                        unique_topsnap_views,
-                        unique_topsnaps_per_user,
-                        unique_viewers,
-                        drop_off_rate
-    
-                        FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
-                        LEFT JOIN  EXTERNAL_QUERY(
-                                                  "projects/distribution-engine/locations/us/connections/postgres",
-                                                  """
-                                                  SELECT story_id::TEXT,
-                                                        published_at,
-                                                        title,
-                                                        name
-                                                  FROM snap_studio_story_metric
-                                                  LEFT JOIN snap_publishers USING (publisher_id)
-                                                  ---where name in ('Crafty')
-                                                     order by published_at desc
-                                                  """
-                                                  ) AS pub USING (story_id) 
-
-                          LEFT JOIN  EXTERNAL_QUERY(
-                                                    "projects/distribution-engine/locations/us/connections/postgres",
-                                                    """
-                                                    select
-                                                        story_id::TEXT,
-                                                        snap_id,
-                                                        ordinal,
-                                                        drop_off_rate
-       
-                                                    FROM snap_studio_story_snap_metric
-                                                    WHERE  ordinal =0;
-                                                    """
-                                                    ) AS dr USING (story_id) 
-
-
-                                                  --where date(interval_time)>current_date - 180 
-                                                    order by name, interval_time asc
-    
-    
-                  ) non_fin
-                  )
-                  SELECT *, 
-                      -- CAST(story_id AS INT64) story_id_2
-                  FROM cte
-                  WHERE ranking <= 168
-                  AND published_at >= '2022-01-01'
-                  ORDER BY name ASC, story_id, ranking ASC;''')
-  
-    df = pd.read_gbq(sql_query, credentials = credentials)
-    return df
-
 def get_forecast(choose_episode, choose_hours):
     #Load in episode
     data = df[df['story_id'].isin([choose_episode])]
@@ -325,8 +249,81 @@ def crossvalidate_five(tts_episode):
   
   return dataframe
 
+# Uses st.experimental_memo to only rerun when the query changes or after 30 min.
+@st.experimental_memo(ttl=1800)
+def update_data():
+    sql_query = ('''WITH cte AS (SELECT
+                  non_fin.*,
+                  dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
+    
+                  FROM
+                  ( --- non-financial numbers that are not aggregated
+                        SELECT
+                        topsnap_views, 
+                        name, 
+                        title,
+                        datetime(published_at,"America/Toronto") published_at,
+                        datetime(interval_time,"America/Toronto") interval_time,
+                        story_id,
+                        --metrics
+                        avg_time_spent_per_user avg_time_spent_per_user,
+                        completion_rate completion_rate,
+                        screenshots,
+                        shares,
+                        subscribers,
+                        total_time_viewed,
+                        total_views,
+                        unique_completers,
+                        unique_topsnap_views,
+                        unique_topsnaps_per_user,
+                        unique_viewers,
+                        drop_off_rate
+    
+                        FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
+                        LEFT JOIN  EXTERNAL_QUERY(
+                                                  "projects/distribution-engine/locations/us/connections/postgres",
+                                                  """
+                                                  SELECT story_id::TEXT,
+                                                        published_at,
+                                                        title,
+                                                        name
+                                                  FROM snap_studio_story_metric
+                                                  LEFT JOIN snap_publishers USING (publisher_id)
+                                                  ---where name in ('Crafty')
+                                                     order by published_at desc
+                                                  """
+                                                  ) AS pub USING (story_id) 
+
+                          LEFT JOIN  EXTERNAL_QUERY(
+                                                    "projects/distribution-engine/locations/us/connections/postgres",
+                                                    """
+                                                    select
+                                                        story_id::TEXT,
+                                                        snap_id,
+                                                        ordinal,
+                                                        drop_off_rate
+       
+                                                    FROM snap_studio_story_snap_metric
+                                                    WHERE  ordinal =0;
+                                                    """
+                                                    ) AS dr USING (story_id) 
 
 
+                                                  --where date(interval_time)>current_date - 180 
+                                                    order by name, interval_time asc
+    
+    
+                  ) non_fin
+                  )
+                  SELECT *, 
+                      -- CAST(story_id AS INT64) story_id_2
+                  FROM cte
+                  WHERE ranking <= 168
+                  AND published_at >= '2022-01-01'
+                  ORDER BY name ASC, story_id, ranking ASC;''')
+  
+    df = pd.read_gbq(sql_query, credentials = credentials)
+    return df
 
 # Create Sidebar 
 menu = ["Topsnap Forecast", "ML Test & Validate"]
