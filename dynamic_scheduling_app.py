@@ -155,32 +155,32 @@ def forecast_totalview(choose_episode, choose_hours):
       
       return channel_bench
 
-    if ending_hours <= 24:
+    if choose_hours <= 24:
       channel_bench = get_benchmarks(24)
       day = 'Day 1'
       last_24 = end
 
-    elif ((ending_hours > 24) and (ending_hours <= 48)):
+    elif ((choose_hours > 24) and (choose_hours <= 48)):
       channel_bench = get_benchmarks(48)
       day = 'Day 2'
 
-    elif ((ending_hours > 48) and (ending_hours <= 72)):
+    elif ((choose_hours > 48) and (choose_hours <= 72)):
       channel_bench = get_benchmarks(72)
       day = 'Day 3'
 
-    elif ((ending_hours > 72) and (ending_hours <= 96)):
+    elif ((choose_hours > 72) and (choose_hours <= 96)):
       channel_bench = get_benchmarks(96)
       day = 'Day 4'
 
-    elif ((ending_hours > 96) and (ending_hours <= 120)):
+    elif ((choose_hours > 96) and (choose_hours <= 120)):
       channel_bench = get_benchmarks(120)
       day = 'Day 5'
 
-    elif ((ending_hours > 120) and (ending_hours <= 144)):
+    elif ((choose_hours > 120) and (choose_hours <= 144)):
       channel_bench = get_benchmarks(144)
       day = 'Day 6'
 
-    elif ((ending_hours > 144) and (ending_hours <= 168)):
+    elif ((choose_hours > 144) and (choose_hours <= 168)):
       channel_bench = get_benchmarks(168)
       day = 'Day 7'
 
@@ -192,7 +192,7 @@ def forecast_totalview(choose_episode, choose_hours):
                            'font_size':22})
 
     fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
-                annotation_text=(f"Channel Avg at {ending_hours}hrs: <b>{round(channel_bench):,}</b>"), 
+                annotation_text=(f"Channel Avg at {choose_hours}hrs: <b>{round(channel_bench):,}</b>"), 
                 annotation_position="bottom right", annotation_font_size=14,
                 annotation_font_color="purple")
 
