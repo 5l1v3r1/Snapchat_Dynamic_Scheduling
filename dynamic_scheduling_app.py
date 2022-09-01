@@ -382,7 +382,7 @@ def plot_loss(tts_episode):
     metrics_test = model.test(df=df_test)
     
     plot_metrics = metrics_train[['MSELoss', 'MSELoss_val']]
-    plot_metrics = plot_metrics.rename(columns={'MSELoss_val': 'Test', 'MSELoss':'Train'})
+    plot_metrics = plot_metrics.rename(columns={'MSELoss':'Train', 'MSELoss_val': 'Test'})
     plot_metrics = np.log(plot_metrics)
 
     return plot_metrics
