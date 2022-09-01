@@ -49,7 +49,7 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 #Creating Functions 
 
-def get_forecast(choose_episode, choose_hours):
+def forecast_totalview(choose_episode, choose_hours):
     #Load in episode
     data = df[df['story_id'].isin([choose_episode])]
     data = data.loc[:, ['interval_time', 'topsnap_views']]
@@ -129,9 +129,13 @@ def get_forecast(choose_episode, choose_hours):
   
     data = [yhat_lower, yhat_upper, yhat, actual]
 
-    #Get episode name
-    episode_name = df[df['story_id'].isin([choose_episode])]
-    episode_name = episode_name.head(1)['title'].values[0]
+    #Get Episode name
+    episode_df = df[df['story_id'].isin([choose_episode])]
+    episode_name = episode_df.head(1)['title'].values[0]
+
+    #Get Channel name 
+    channel_df = benchmarks[benchmarks['name'].isin(episode_df.name)]
+    channel_name = channel_df.head(1)['name'].values[0]
 
     #Get values to visualize predicted performance in the title 
     start2 = future.dropna().tail(1)['y'].values[0]
@@ -143,12 +147,54 @@ def get_forecast(choose_episode, choose_hours):
     end = start_end.tail(1)['yhat1'].values[0]
     last_24 = round(end-start)
 
+    #Get benchmarks
+    def get_benchmarks(choose):
+      b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
+      b_channel = b_channel.loc[b_channel['ranking'] == choose, ['topsnap_views_total']]
+      channel_bench = b_channel['topsnap_views_total'].mean()
+      
+      return channel_bench
+
+    if ending_hours <= 24:
+      channel_bench = get_benchmarks(24)
+      day = 'Day 1'
+      last_24 = end
+
+    elif ((ending_hours > 24) and (ending_hours <= 48)):
+      channel_bench = get_benchmarks(48)
+      day = 'Day 2'
+
+    elif ((ending_hours > 48) and (ending_hours <= 72)):
+      channel_bench = get_benchmarks(72)
+      day = 'Day 3'
+
+    elif ((ending_hours > 72) and (ending_hours <= 96)):
+      channel_bench = get_benchmarks(96)
+      day = 'Day 4'
+
+    elif ((ending_hours > 96) and (ending_hours <= 120)):
+      channel_bench = get_benchmarks(120)
+      day = 'Day 5'
+
+    elif ((ending_hours > 120) and (ending_hours <= 144)):
+      channel_bench = get_benchmarks(144)
+      day = 'Day 6'
+
+    elif ((ending_hours > 144) and (ending_hours <= 168)):
+      channel_bench = get_benchmarks(168)
+      day = 'Day 7'
+
     fig = go.Figure(data= data, layout=layout)
     
-    fig.update_layout(title={'text': (f'<b>{episode_name}</b><br>{choose_hours}hr Topsnap Prediction = {number:,}<br>Last 24hrs Predicted Topsnaps = {last_24:,}'),
-                           'y':0.88,
+    fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b><br>{day} Topsnap Prediction = <b>{last_24:,}<b></sup>'),
+                           'y':0.91,
                            'x':0.075,
-                           'font_size':20})
+                           'font_size':22})
+
+    fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
+                annotation_text=(f"Channel Avg at {ending_hours}hrs: <b>{round(channel_bench):,}</b>"), 
+                annotation_position="bottom right", annotation_font_size=14,
+                annotation_font_color="purple")
 
     return fig
 
@@ -177,7 +223,7 @@ def plot_loss(tts_episode):
     metrics_test = model.test(df=df_test)
     
     plot_metrics = metrics_train[['MSELoss', 'MSELoss_val']]
-    plot_metrcs = plot_metrics.rename(columns={'MSELoss': 'Train', 'MSELoss_val':'Test'})
+    plot_metrics = plot_metrics.rename(columns={'MSELoss_val': 'Test', 'MSELoss':'Train'})
     plot_metrics = np.log(plot_metrics)
 
     return plot_metrics
@@ -334,6 +380,106 @@ def update_data():
     df = pd.read_gbq(sql_query, credentials = credentials)
     return df
 
+@st.cache(ttl=43200)
+def benchmark_data():
+  sql_query2 = ('''WITH cte AS (SELECT
+    non_fin.*,
+    dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
+
+  FROM
+  ( --- non-financial numbers that are not aggregated
+    SELECT 
+    name, 
+    title,
+    datetime(published_at,"America/Toronto") published_at,
+    datetime(interval_time,"America/Toronto") interval_time,
+    story_id,
+    --metrics
+    avg_time_spent_per_user avg_time_spent_per_user,
+    completion_rate completion_rate,
+    demo_age_18_to_17_diff demo_age_13_to_17_diff,
+    demo_age_18_to_24_diff demo_age_18_to_24_diff,
+    demo_age_25_to_34_diff demo_age_25_to_34_diff,
+    demo_age_35_plus_diff demo_age_35_plus_diff,
+    demo_age_unknown_diff demo_age_unknown_diff,
+    demo_female_diff demo_female_diff,
+    demo_male_diff demo_male_diff,
+    demo_gender_unknown_diff demo_gender_unknown_diff,
+
+    screenshots_diff screenshots_diff,
+    shares_diff shares_diff,
+    subscribers_diff subscribers_diff,
+    tiles tiles,
+    topsnap_views_diff topsnap_views_diff,
+    topsnap_views topsnap_views_total,
+    total_time_viewed_diff total_time_viewed_diff,
+    total_views_diff total_views_diff,
+    unique_completers_diff unique_completers_diff,
+    unique_topsnap_views_diff unique_topsnap_views_diff,
+    ---unique_topsnaps_per_user_diff unique_topsnaps_per_user_diff,
+    sum(unique_topsnaps_per_user_diff) over (partition by story_id order by interval_time ) cum_unique_topsnaps_per_user_diff,
+    unique_viewers_diff unique_viewers_diff,
+    unique_viewers unique_viewers_total,
+    drop_off_rate
+
+  FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
+  LEFT JOIN  EXTERNAL_QUERY(
+     "projects/distribution-engine/locations/us/connections/postgres",
+     """
+    SELECT story_id::TEXT,
+            published_at,
+            title,
+            name
+    FROM snap_studio_story_metric
+        LEFT JOIN snap_publishers USING (publisher_id)
+    ---where name in ('Crafty')
+        order by published_at desc
+                """
+        ) AS pub USING (story_id) 
+
+         LEFT JOIN  EXTERNAL_QUERY(
+     "projects/distribution-engine/locations/us/connections/postgres",
+     """
+    select
+    story_id::TEXT,
+       snap_id,
+       ordinal,
+       drop_off_rate
+  from snap_studio_story_snap_metric
+  where  ordinal =0;
+                """
+        ) AS dr USING (story_id) 
+
+
+       --where date(interval_time)>current_date - 360 
+    order by name, interval_time asc
+    
+    
+    ) non_fin
+    ), 
+  cte_2 AS(
+        SELECT name, 
+        title, 
+        published_at, 
+        interval_time,
+        story_id, 
+        ranking,
+  		topsnap_views_diff,
+        topsnap_views_total,
+  		unique_viewers_diff,
+        unique_viewers_total
+        FROM cte
+        WHERE ranking in (24, 48, 72, 96, 120, 144, 168)
+        )
+  SELECT *,
+    topsnap_views_total - LAG(topsnap_views_total) OVER (PARTITION BY name, story_id ORDER BY ranking) topsnap_daily_diff,
+    unique_viewers_total - LAG(unique_viewers_total) OVER (PARTITION BY name, story_id ORDER BY ranking) unique_viewers_daily_diff
+  FROM cte_2
+  WHERE published_at >= current_date - 120;''')
+
+  benchmarks = pd.read_gbq(sql_query2, credentials = credentials)
+  return benchmarks
+
 # Create Sidebar 
 menu = ["Topsnap Forecast", "ML Test & Validate"]
 choice = st.sidebar.selectbox("Menu", menu)
@@ -356,12 +502,21 @@ if choice == 'Topsnap Forecast':
 
     #Choose an episode 
     episode = st.text_input("Enter the Story ID here:", "")
-    hours = st.number_input("Enter the number of hours to forecast (24 hours or below)", 0, 24)
+
+    hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168'}
+    def format_func(hours):
+      return hour_choices[hours]
+
+    hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hours_choices.keys()), format_func=format_func)
+    #hours = st.number_input("Enter the number of hours to forecast (24 hours or below)", 0, 24)
     
-    forecast = st.button("Forecast Topsnaps")
-    if forecast:
+    forecast_total = st.button("Forecast Topsnaps - Total View")
+    if forecast_total:
       df = update_data()
-      st.plotly_chart(get_forecast(episode, hours), use_container_width=True)
+      benchmarks = benchmark_data()
+      st.plotly_chart(forecast_totalview(episode, hours), use_container_width=True)
+
+    #forecast_daily = st.button("Forecast Topsnaps - Daily View")
 
 if choice == 'ML Test & Validate':
 
