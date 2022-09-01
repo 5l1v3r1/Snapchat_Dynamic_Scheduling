@@ -205,6 +205,7 @@ def forecast_dailyview(choose_episode, choose_hours):
     data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
     data = data.drop_duplicates(subset='ds')
     data = data.astype({'y' : 'int32'})
+
     hours_number = choose_hours - len(data)
 
     # Train and load model
@@ -260,14 +261,14 @@ def forecast_dailyview(choose_episode, choose_hours):
                           marker = {'color': 'powderblue'},
                           showlegend = False,
                           )
-    yhat_upper = go.Scatter(x = prediction['ds'],
+    yhat_upper = go.Scatter(x = show_prediction['ds'],
                           y = show_prediction['yhat_upper'],
                           fill='tonexty',
                           fillcolor = 'powderblue',
                           name = 'Confidence (95%)',
                           mode = 'none'
                           )
-    actual = go.Scatter(x = data['ds'],
+    actual = go.Scatter(x = show_prediction['ds'],
                       y = show_prediction['y_daily'],
                       mode = 'markers',
                       marker = {'color': '#fffaef','size': 10,'line': {'color': '#000000',
