@@ -158,7 +158,7 @@ def forecast_totalview(choose_episode, choose_hours):
     return channel_bench
 
   if choose_hours <= 24:
-    channel_bench = get_benchmarks(episode, 24)
+    channel_bench = get_benchmarks(24)
     day = 'Day 1'
     last_24 = end
 
