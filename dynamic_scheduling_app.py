@@ -240,7 +240,7 @@ def forecast_dailyview(choose_episode, choose_hours):
 
     show_prediction = show_prediction.reset_index().drop(columns=['index'])
     show_prediction['n'] = show_prediction.index.to_list()
-    show_prediction['n'] - show_prediction['n'] + 1
+    show_prediction['n'] = show_prediction['n'] + 1
 
     #95% confience interval with zscore of 1.96
     show_prediction['ci'] = 1.96 * show_prediction['running_std'] / np.sqrt(show_prediction['n'])
