@@ -57,7 +57,7 @@ def forecast_totalview(choose_episode, choose_hours):
   data = data.drop_duplicates(subset='ds')
   data = data.astype({'y' : 'int32'})
 
-  hours_number = ending_hours - len(data)
+  hours_number = choose_hours - len(data)
 
   # Train and load model
   m = NeuralProphet(num_hidden_layers=2,
