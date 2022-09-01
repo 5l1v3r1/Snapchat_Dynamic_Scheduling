@@ -186,7 +186,7 @@ def forecast_totalview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
 
-  fig = go.Figure(data= data, layout=layout)
+  fig = go.Figure(data= layout_data, layout=layout)
 
   fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b><br>{day} Topsnap Prediction = <b>{last_24:,}<b></sup>'),
                            'y':0.91,
