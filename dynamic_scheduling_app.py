@@ -504,10 +504,10 @@ if choice == 'Topsnap Forecast':
     episode = st.text_input("Enter the Story ID here:", "")
 
     hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168'}
-    def format_func(hours):
-      return hour_choices[hours]
+    #def format_func(hours):
+      #return hour_choices[hours]
 
-    hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hours_choices.keys()), format_func=format_func)
+    hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hour_choices.keys()), format_func = lambda x:hour_choices[x])
     #hours = st.number_input("Enter the number of hours to forecast (24 hours or below)", 0, 24)
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
