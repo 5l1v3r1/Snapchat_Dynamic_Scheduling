@@ -50,15 +50,17 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 #Creating Functions 
 
 def forecast_totalview(choose_episode, choose_hours):
-    #Load in episode
-    data = df[df['story_id'].isin([choose_episode])]
-    data = data.loc[:, ['interval_time', 'topsnap_views']]
-    data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
-    data = data.drop_duplicates(subset='ds')
-    data = data.astype({'y' : 'int32'})
+  #Load in episode
+  data = df[df['story_id'].isin([choose_episode])]
+  data = data.loc[:, ['interval_time', 'topsnap_views']]
+  data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
+  data = data.drop_duplicates(subset='ds')
+  data = data.astype({'y' : 'int32'})
 
-    # Train and load model
-    m = NeuralProphet(num_hidden_layers=2,
+  hours_number = ending_hours - len(data)
+
+  # Train and load model
+  m = NeuralProphet(num_hidden_layers=2,
                     d_hidden=4,
                     seasonality_mode='muplicative',
                     learning_rate=5.0,
@@ -66,137 +68,137 @@ def forecast_totalview(choose_episode, choose_hours):
                     loss_func='mse'
                     )
   
-    metrics = m.fit(data, freq='H')
+  metrics = m.fit(data, freq='H')
   
-    future = m.make_future_dataframe(data, periods=choose_hours, n_historic_predictions=len(data)) 
-    prediction = m.predict(future)
+  future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
+  prediction = m.predict(future)
 
-    #Get Confidence Interval upper/lower bounds (0.95)
-    bounds = prediction['yhat1']
-    average_data = []
-    for ind in range(len(bounds)):
-      average_data.append(np.mean(bounds[0:ind+1]))
+  #Get Confidence Intervals
+  y = prediction['yhat1']
+  average_data = []
+  for ind in range(len(y)):
+    average_data.append(np.mean(y[0:ind+1]))
+  prediction['running_mean'] = average_data
 
-    prediction['running_mean'] = average_data
+  std_data = []
+  for ind in range(len(y)):
+    std_data.append(np.std(y[0:ind+1]))
+  prediction['running_std'] = std_data
 
-    std_data = []
-    for ind in range(len(bounds)):
-      std_data.append(np.std(bounds[0:ind+1]))
+  prediction['n'] = prediction.index.to_list()
+  prediction['n'] = prediction['n'] + 1
+  prediction['ci'] = 1.96 * prediction['running_std'] / np.sqrt(prediction['n'])
+  prediction['yhat_lower'] = prediction['yhat1'] - prediction['ci']
+  prediction['yhat_upper'] = prediction['yhat1'] + prediction['ci']
 
-    prediction['running_std'] = std_data
-
-    prediction['n'] = prediction.index.to_list()
-    prediction['n'] = prediction['n'] + 1
-
-    #95% confience interval with zscore of 1.96
-    prediction['ci'] = 1.96 * prediction['running_std'] / np.sqrt(prediction['n'])
-    prediction['yhat_lower'] = prediction['yhat1'] - prediction['ci']
-    prediction['yhat_upper'] = prediction['yhat1'] + prediction['ci']
-
-    #Visualize Model 
-    yhat = go.Scatter(x = prediction['ds'], 
+  #Visualize Model 
+  yhat = go.Scatter(x = prediction['ds'], 
                     y = prediction['yhat1'],
+                    #y = prediction['yhat24'], 
                     mode = 'lines',
                     marker = {'color': 'blue'},
                     line = {'width': 4},
                     name = 'Forecast',
                     )
-    yhat_lower = go.Scatter(x = prediction['ds'],
+  yhat_lower = go.Scatter(x = prediction['ds'],
                           y = prediction['yhat_lower'],
                           marker = {'color': 'powderblue'},
                           showlegend = False,
+                          #hoverinfo = 'none',
                           )
-    yhat_upper = go.Scatter(x = prediction['ds'],
+  yhat_upper = go.Scatter(x = prediction['ds'],
                           y = prediction['yhat_upper'],
                           fill='tonexty',
                           fillcolor = 'powderblue',
                           name = 'Confidence (95%)',
+                          #hoverinfo = 'yhat_upper',
                           mode = 'none'
                           )
-    actual = go.Scatter(x = data['ds'],
-                      y = data['y'],
+  
+  actual = go.Scatter(x = prediction['ds'],
+                      y = prediction['y'],
                       mode = 'markers',
                       marker = {'color': '#fffaef','size': 10,'line': {'color': '#000000',
                                                                       'width': 0.8}},
                       name = 'Actual'
                       )
   
-    layout = go.Layout(yaxis = {'title': 'Topsnaps',},
+  layout = go.Layout(yaxis = {'title': 'Topsnaps',},
                      hovermode = 'x',
                      xaxis = {'title': 'Hours/Days'},
                      margin = {'t': 20,'b': 50,'l': 60,'r': 10},
                      legend = {'bgcolor': 'rgba(0,0,0,0)'})
   
-    data = [yhat_lower, yhat_upper, yhat, actual]
+  layout_data = [yhat_lower, yhat_upper, yhat, actual]
 
-    #Get Episode name
-    episode_df = df[df['story_id'].isin([choose_episode])]
-    episode_name = episode_df.head(1)['title'].values[0]
+  #Get Episode name
+  episode_df = df[df['story_id'].isin([choose_episode])]
+  episode_name = episode_df.head(1)['title'].values[0]
 
-    #Get Channel name 
-    channel_df = benchmarks[benchmarks['name'].isin(episode_df.name)]
-    channel_name = channel_df.head(1)['name'].values[0]
+  #Get Channel name 
+  channel_df = benchmarks[benchmarks['name'].isin(episode_df.name)]
+  channel_name = channel_df.head(1)['name'].values[0]
 
-    #Get values to visualize predicted performance in the title 
-    start2 = future.dropna().tail(1)['y'].values[0]
-    end2 = prediction.tail(1)['yhat1'].values[0]
-    number = round(end2-start2)
+  #Get hours for title 
+  start2 = future.dropna().tail(1)['y'].values[0]
+  end2 = prediction.tail(1)['yhat1'].values[0]
+  number = round(end2-start2)
 
-    start_end = prediction.tail(24)
-    start = start_end.head(1)['yhat1'].values[0]
-    end = start_end.tail(1)['yhat1'].values[0]
-    last_24 = round(end-start)
+  start_end = prediction.tail(24)
+  start = start_end.head(1)['yhat1'].values[0]
+  end = start_end.tail(1)['yhat1'].values[0]
+  end = round(end)
+  last_24 = round(end-start)
 
-    #Get benchmarks
-    def get_benchmarks(choose):
-      b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
-      b_channel = b_channel.loc[b_channel['ranking'] == choose, ['topsnap_views_total']]
-      channel_bench = b_channel['topsnap_views_total'].mean()
-      
-      return channel_bench
+  #Get benchmarks
+  def get_benchmarks(choose):
+    b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
+    b_channel = b_channel.loc[b_channel['ranking'] == choose, ['topsnap_views_total']]
+    channel_bench = b_channel['topsnap_views_total'].mean()
+    return channel_bench
 
-    if choose_hours <= 24:
-      channel_bench = get_benchmarks(24)
-      day = 'Day 1'
-      last_24 = end
+  if choose_hours <= 24:
+    channel_bench = get_benchmarks(episode, 24)
+    day = 'Day 1'
+    last_24 = end
 
-    elif ((choose_hours > 24) and (choose_hours <= 48)):
-      channel_bench = get_benchmarks(48)
-      day = 'Day 2'
+  elif ((choose_hours > 24) and (choose_hours <= 48)):
+    channel_bench = get_benchmarks(48)
+    day = 'Day 2'
 
-    elif ((choose_hours > 48) and (choose_hours <= 72)):
-      channel_bench = get_benchmarks(72)
-      day = 'Day 3'
+  elif ((choose_hours > 48) and (choose_hours <= 72)):
+    channel_bench = get_benchmarks(72)
+    day = 'Day 3'
 
-    elif ((choose_hours > 72) and (choose_hours <= 96)):
-      channel_bench = get_benchmarks(96)
-      day = 'Day 4'
+  elif ((choose_hours > 72) and (choose_hours <= 96)):
+    channel_bench = get_benchmarks(96)
+    day = 'Day 4'
 
-    elif ((choose_hours > 96) and (choose_hours <= 120)):
-      channel_bench = get_benchmarks(120)
-      day = 'Day 5'
+  elif ((choose_hours > 96) and (choose_hours <= 120)):
+    channel_bench = get_benchmarks(120)
+    day = 'Day 5'
 
-    elif ((choose_hours > 120) and (choose_hours <= 144)):
-      channel_bench = get_benchmarks(144)
-      day = 'Day 6'
+  elif ((choose_hours > 120) and (choose_hours <= 144)):
+    channel_bench = get_benchmarks(144)
+    day = 'Day 6'
 
-    elif ((choose_hours > 144) and (choose_hours <= 168)):
-      channel_bench = get_benchmarks(168)
-      day = 'Day 7'
+  elif ((choose_hours > 144) and (choose_hours <= 168)):
+    channel_bench = get_benchmarks(168)
+    day = 'Day 7'
 
-    fig = go.Figure(data= data, layout=layout)
-    
-    fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{round(end):,}</b><br>{day} Topsnap Prediction = <b>{last_24:,}<b></sup>'),
+  fig = go.Figure(data= data, layout=layout)
+
+  fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b><br>{day} Topsnap Prediction = <b>{last_24:,}<b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
-
-    fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
+  fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
                 annotation_text=(f"Channel Avg at {choose_hours}hrs: <b>{round(channel_bench):,}</b>"), 
-                annotation_position="bottom right", annotation_font_size=14,
-                annotation_font_color="purple")
-
-    return fig
+              annotation_position="bottom right",
+              annotation_font_size=14,
+              annotation_font_color="purple"
+             )
+  return fig
 
 def forecast_dailyview(choose_episode, choose_hours):
   #Load in episode
