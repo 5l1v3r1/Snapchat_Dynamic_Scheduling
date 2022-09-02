@@ -58,6 +58,8 @@ def forecast_totalview(choose_episode, choose_hours):
   data = data.astype({'y' : 'int32'})
 
   hours_number = choose_hours - len(data)
+  if len(data) > choose_hours:
+    hours_number = 0
 
   # Train and load model
   m = NeuralProphet(num_hidden_layers=2,
@@ -186,9 +188,15 @@ def forecast_totalview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
 
+  trending = ((end-channel_bench)/channel_bench)*100
+  if trending > 0:
+    trending = f'+{round(trending)}% above'
+  else:
+    trending = f'{round(trending)}% below'
+
   fig = go.Figure(data= layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b><br>{day} Topsnap Prediction = <b>{last_24:,}<b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b> ({trending} Avg)<br>{day} Topsnap Prediction = <b>{round(last_24):,}<b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
@@ -209,6 +217,8 @@ def forecast_dailyview(choose_episode, choose_hours):
   data = data.astype({'y' : 'int32'})
 
   hours_number = choose_hours - len(data)
+  if len(data) > choose_hours:
+    hours_number = 0
 
   # Train and load model
   m = NeuralProphet(num_hidden_layers=2,
@@ -299,6 +309,8 @@ def forecast_dailyview(choose_episode, choose_hours):
   start2 = future.dropna().tail(1)['y'].values[0]
   end2 = prediction.tail(1)['yhat1'].values[0]
   number = round(end2-start2)
+  if hours_number == 0:
+    number = 0
 
   start_end = prediction.tail(24)
   start = start_end.head(1)['yhat1'].values[0]
@@ -343,9 +355,15 @@ def forecast_dailyview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
 
+  trending = ((last_24-channel_bench)/channel_bench)*100
+  if trending > 0:
+    trending = f'+{round(trending)}% above'
+  else:
+    trending = f'{round(trending)}% below'
+
   fig = go.Figure(data=layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} Topsnap Prediction = <b>{last_24:,}</b><br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} Topsnap Prediction = <b>{last_24:,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
