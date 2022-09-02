@@ -17,4 +17,4 @@ The current use of this model doesn't leverage the AR-net properties of the mode
 ### Dynamic Forecasting 
 
 ### Train & Testing Model 
-A tab is created for the data team to also use this tool themselves to quickly and easly monitor the performance of the model. Validating the model through plot loss visualizing, rendering key metrics is available with use of the "Plot Loss" and "Test Metrics" buttons. Quick cross-validation is also available using 3 and 5 folds respectively. 
+A tab is created for the data team to also use this tool themselves to quickly and easly monitor the performance of the model. Validating the model through plot loss visualization as well as rendering key performance metrics (Loss, MAE, RMSE) is available with use of the "Plot Loss" and "Test Metrics" buttons. Quick cross-validation is also available using 3 and 5 folds respectively. 
