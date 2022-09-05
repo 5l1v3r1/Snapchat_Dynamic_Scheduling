@@ -152,6 +152,10 @@ def forecast_totalview(choose_episode, choose_hours):
   end = round(end)
   last_24 = round(end-start)
 
+  #Get recent 168hr benchmark
+  banger_bench = channel_df.loc[channel_df['ranking'] == 168, ['topsnap_views_total']]
+  banger_bench = banger_bench['topsnap_views_total'].mean()*2
+
   #Get benchmarks
   def get_benchmarks(choose):
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
@@ -205,6 +209,12 @@ def forecast_totalview(choose_episode, choose_hours):
               annotation_position="bottom right",
               annotation_font_size=14,
               annotation_font_color="purple"
+             )
+  fig.add_hline(y=banger_bench, line_dash="dot", line_color='gold',
+                annotation_text="168hr Banger Benchmark", 
+              annotation_position="bottom right",
+              annotation_font_size=14,
+              annotation_font_color="black"
              )
   return fig
 
@@ -681,11 +691,7 @@ if choice == 'Topsnap Forecast':
     episode = st.text_input("Enter the Story ID here:", "")
 
     hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168'}
-    #def format_func(hours):
-      #return hour_choices[hours]
-
     hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hour_choices.keys()), format_func = lambda x:hour_choices[x])
-    #hours = st.number_input("Enter the number of hours to forecast (24 hours or below)", 0, 24)
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
     if forecast_total:
