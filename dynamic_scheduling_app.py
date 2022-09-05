@@ -66,7 +66,7 @@ def forecast_totalview(choose_episode, choose_hours):
                     d_hidden=4,
                     seasonality_mode='muplicative',
                     learning_rate=5.0,
-                    batch_size=40,
+                    batch_size=50,
                     loss_func='mse'
                     )
   
@@ -74,6 +74,9 @@ def forecast_totalview(choose_episode, choose_hours):
   
   future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
   prediction = m.predict(future)
+
+  if len(data) > ending_hours:
+    prediction = prediction[:choose_hours]
 
   #Get Confidence Intervals
   y = prediction['yhat1']
@@ -235,7 +238,7 @@ def forecast_dailyview(choose_episode, choose_hours):
                     d_hidden=4,
                     seasonality_mode='muplicative',
                     learning_rate=5.0,
-                    batch_size=40,
+                    batch_size=50,
                     loss_func='mse'
                     )
   
