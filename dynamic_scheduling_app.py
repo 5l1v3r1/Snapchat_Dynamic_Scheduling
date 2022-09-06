@@ -252,6 +252,17 @@ def forecast_dailyview(choose_episode, choose_hours):
   show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
   show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
 
+  if ((len(data) > choose_hours) and (choose_hours == 24)):
+    show_prediction = prediction[:choose_hours]
+    show_prediction['y_daily'] = show_prediction['y']
+    show_prediction['yhat_daily'] = show_prediction['yhat1']
+    
+  elif ((len(data) > choose_hours) and (choose_hours > 24)):
+    beginning = choose_hours - 24
+    show_prediction = prediction[beginning:choose_hours]
+    show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
+    show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
+
   #Get Confidence Intervals
   y = show_prediction['yhat_daily']
   average_data = []
@@ -325,11 +336,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   if hours_number == 0:
     number = 0
 
-  start_end = prediction.tail(24)
-  start = start_end.head(1)['yhat1'].values[0]
-  end = start_end.tail(1)['yhat1'].values[0]
-  last_24 = round(end-start)
-
+  last_24 = round(show_prediction.tail(1)['yhat_daily'].values[0])
 
   #Get benchmarks
   def get_benchmarks(choose):
