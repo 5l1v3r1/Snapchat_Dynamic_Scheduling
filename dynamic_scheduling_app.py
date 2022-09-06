@@ -437,8 +437,9 @@ def test_metrics(tts_episode):
 
     metrics_train = model.fit(df=df_train, freq="H", validation_df=df_test)
     metrics_test = model.test(df=df_test)
+    final_test = metrics_train.tail(1)
 
-    return metrics_test
+    return final_test
 
 def crossvalidate_three(tts_episode):
   data = df[df['story_id'].isin([tts_episode])]
