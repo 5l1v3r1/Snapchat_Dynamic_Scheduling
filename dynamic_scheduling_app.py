@@ -75,7 +75,7 @@ def forecast_totalview(choose_episode, choose_hours):
   future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
   prediction = m.predict(future)
 
-  if len(data) > ending_hours:
+  if len(data) > choose_hours:
     prediction = prediction[:choose_hours]
 
   #Get Confidence Intervals
