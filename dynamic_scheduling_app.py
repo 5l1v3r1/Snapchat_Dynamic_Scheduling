@@ -401,7 +401,7 @@ def tts_model():
                     d_hidden=4,
                     seasonality_mode='muplicative', 
                     learning_rate=5.0,
-                    batch_size=40,
+                    batch_size=50,
                     loss_func='mse'
                     )
     return m
@@ -455,7 +455,7 @@ def crossvalidate_three(tts_episode):
           "d_hidden":4,
           "seasonality_mode":'muplicative',
           "learning_rate":5.0,
-          "batch_size":40,
+          "batch_size":50,
           "loss_func":'mse'}
           
   exp_cv = CrossValidationExperiment(model_class=NeuralProphetModel,
@@ -485,7 +485,7 @@ def crossvalidate_five(tts_episode):
           "d_hidden":4,
           "seasonality_mode":'muplicative',
           "learning_rate":5.0,
-          "batch_size":40,
+          "batch_size":50,
           "loss_func":'mse'}
           
   exp_cv = CrossValidationExperiment(model_class=NeuralProphetModel,
