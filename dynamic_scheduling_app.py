@@ -202,6 +202,18 @@ def forecast_totalview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
 
+  elif ((choose_hours > 168) and (choose_hours <= 192)):
+    channel_bench = get_benchmarks(192)
+    day = 'Day 8'
+
+  elif ((choose_hours > 192) and (choose_hours <= 216)):
+    channel_bench = get_benchmarks(216)
+    day = 'Day 9'
+
+  elif ((choose_hours > 216) and (choose_hours <= 240)):
+    channel_bench = get_benchmarks(240)
+    day = 'Day 10'
+
   trending = ((end-channel_bench)/channel_bench)*100
   if trending > 0:
     trending = f'+{round(trending)}% above'
@@ -388,6 +400,18 @@ def forecast_dailyview(choose_episode, choose_hours):
   elif ((choose_hours > 144) and (choose_hours <= 168)):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
+
+  elif ((choose_hours > 168) and (choose_hours <= 192)):
+    channel_bench = get_benchmarks(192)
+    day = 'Day 8'
+
+  elif ((choose_hours > 192) and (choose_hours <= 216)):
+    channel_bench = get_benchmarks(216)
+    day = 'Day 9'
+
+  elif ((choose_hours > 216) and (choose_hours <= 240)):
+    channel_bench = get_benchmarks(240)
+    day = 'Day 10'
 
   trending = ((last_24-channel_bench)/channel_bench)*100
   if trending > 0:
@@ -585,7 +609,7 @@ def update_data():
                   SELECT *, 
                       -- CAST(story_id AS INT64) story_id_2
                   FROM cte
-                  WHERE ranking <= 168
+                  WHERE ranking <= 240
                   AND published_at >= '2022-01-01'
                   ORDER BY name ASC, story_id, ranking ASC;''')
   
@@ -681,7 +705,7 @@ cte_2 AS(
   		unique_viewers_diff,
         unique_viewers_total
         FROM cte
-        WHERE ranking in (24, 48, 72, 96, 120, 144, 168)
+        WHERE ranking in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240)
         )
 SELECT cte_2.*,
     cte_2.topsnap_views_total - LAG(cte_2.topsnap_views_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) topsnap_daily_diff,
@@ -738,7 +762,7 @@ if choice == 'Topsnap Forecast':
     #Choose an episode 
     episode = st.text_input("Enter the Story ID here:", "")
 
-    hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168'}
+    hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168', 192:'192', 216:'216', 240:'240'}
     hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hour_choices.keys()), format_func = lambda x:hour_choices[x])
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
