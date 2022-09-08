@@ -144,6 +144,14 @@ def forecast_totalview(choose_episode, choose_hours):
   channel_df = benchmarks[benchmarks['name'].isin(episode_df.name)]
   channel_name = channel_df.head(1)['name'].values[0]
 
+  #Get Test CTR
+  ctr_df = benchmarks[benchmarks['story_id'].isin([episode])]
+  ctr_raw = ctr_df['best_test_ctr'].head(1)
+  ctr = ctr_df.head(1)['best_test_ctr'].values[0]
+  ctr = f'{round(ctr*100, 2)}%'
+  if ctr_raw is None: 
+    ctr = "No CTR Data"
+
   #Get hours for title 
   start2 = future.dropna().tail(1)['y'].values[0]
   end2 = prediction.tail(1)['yhat1'].values[0]
@@ -203,7 +211,7 @@ def forecast_totalview(choose_episode, choose_hours):
 
   fig = go.Figure(data= layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b> ({trending} Avg)<br>{day} Topsnap Prediction = <b>{round(last_24):,}<b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b> ({trending} Avg)<br>{day} Topsnap Prediction = <b>{round(last_24):,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
@@ -329,6 +337,14 @@ def forecast_dailyview(choose_episode, choose_hours):
   channel_df = benchmarks[benchmarks['name'].isin(episode_df.name)]
   channel_name = channel_df.head(1)['name'].values[0]
 
+  #Get Test CTR
+  ctr_df = benchmarks[benchmarks['story_id'].isin([episode])]
+  ctr_raw = ctr_df['best_test_ctr'].head(1)
+  ctr = ctr_df.head(1)['best_test_ctr'].values[0]
+  ctr = f'{round(ctr*100, 2)}%'
+  if ctr_raw is None: 
+    ctr = "No CTR Data"
+
   #Get hours & values for title 
   start2 = future.dropna().tail(1)['y'].values[0]
   end2 = prediction.tail(1)['yhat1'].values[0]
@@ -383,7 +399,7 @@ def forecast_dailyview(choose_episode, choose_hours):
 
   fig = go.Figure(data=layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} Topsnap Prediction = <b>{last_24:,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} Topsnap Prediction = <b>{last_24:,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
@@ -584,8 +600,8 @@ def benchmark_data():
     non_fin.*,
     dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
 
-  FROM
-  ( --- non-financial numbers that are not aggregated
+FROM
+( --- non-financial numbers that are not aggregated
     SELECT 
     name, 
     title,
@@ -620,8 +636,8 @@ def benchmark_data():
     unique_viewers unique_viewers_total,
     drop_off_rate
 
-  FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
-  LEFT JOIN  EXTERNAL_QUERY(
+FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
+LEFT JOIN  EXTERNAL_QUERY(
      "projects/distribution-engine/locations/us/connections/postgres",
      """
     SELECT story_id::TEXT,
@@ -643,8 +659,8 @@ def benchmark_data():
        snap_id,
        ordinal,
        drop_off_rate
-  from snap_studio_story_snap_metric
-  where  ordinal =0;
+from snap_studio_story_snap_metric
+where  ordinal =0;
                 """
         ) AS dr USING (story_id) 
 
@@ -655,7 +671,7 @@ def benchmark_data():
     
     ) non_fin
     ), 
-  cte_2 AS(
+cte_2 AS(
         SELECT name, 
         title, 
         published_at, 
@@ -669,11 +685,34 @@ def benchmark_data():
         FROM cte
         WHERE ranking in (24, 48, 72, 96, 120, 144, 168)
         )
-  SELECT *,
-    topsnap_views_total - LAG(topsnap_views_total) OVER (PARTITION BY name, story_id ORDER BY ranking) topsnap_daily_diff,
-    unique_viewers_total - LAG(unique_viewers_total) OVER (PARTITION BY name, story_id ORDER BY ranking) unique_viewers_daily_diff
-  FROM cte_2
-  WHERE published_at >= current_date - 90;''')
+SELECT cte_2.*,
+    cte_2.topsnap_views_total - LAG(cte_2.topsnap_views_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) topsnap_daily_diff,
+    cte_2.unique_viewers_total - LAG(cte_2.unique_viewers_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) unique_viewers_daily_diff,
+    split.best_test_ctr 
+FROM cte_2
+LEFT JOIN EXTERNAL_QUERY(
+                            "projects/distribution-engine/locations/us/connections/postgres",
+                            """
+                            WITH cte AS
+                                      (
+                                        SELECT *,
+                                        ROUND(swipes::NUMERIC/paid_impressions, 3)      swipe_up_rate,
+                                        ROUND(story_opens::NUMERIC/paid_impressions, 3) story_open_rate,
+                                        ROUND(spend/1000000, 2)                true_spend,
+                                        REGEXP_REPLACE(name, '[A-Z]$', '')        episode_name
+                                        --(name, '[A-Z]$|A[A-Z]$', '')        episode_name
+                                        FROM snap_marketing_ad_lifetime
+                                        ORDER BY story_open_rate DESC
+                                      )
+                            SELECT episode_name title,
+                            MAX(story_open_rate) best_test_ctr, 
+                            MAX(swipe_up_rate) best_test_sur
+                            FROM cte
+                            GROUP BY episode_name
+                            """
+                        ) AS split
+ON cte_2.title = split.title
+WHERE published_at >= current_date - 90;''')
 
   benchmarks = pd.read_gbq(sql_query2, credentials = credentials)
   return benchmarks
