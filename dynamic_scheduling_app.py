@@ -148,9 +148,8 @@ def forecast_totalview(choose_episode, choose_hours):
   ctr_df = benchmarks[benchmarks['story_id'].isin([episode])]
   ctr_raw = ctr_df['best_test_ctr'].head(1)
   ctr = ctr_df.head(1)['best_test_ctr'].values[0]
-  ctr = f'{round(ctr*100, 2)}%'
-  if ctr_raw is None: 
-    ctr = "No CTR Data"
+  if ctr is not None:
+    ctr = f'{round(ctr*100, 2)}%'
 
   #Get hours for title 
   start2 = future.dropna().tail(1)['y'].values[0]
@@ -341,9 +340,8 @@ def forecast_dailyview(choose_episode, choose_hours):
   ctr_df = benchmarks[benchmarks['story_id'].isin([episode])]
   ctr_raw = ctr_df['best_test_ctr'].head(1)
   ctr = ctr_df.head(1)['best_test_ctr'].values[0]
-  ctr = f'{round(ctr*100, 2)}%'
-  if ctr_raw is None: 
-    ctr = "No CTR Data"
+  if ctr is not None:
+    ctr = f'{round(ctr*100, 2)}%'
 
   #Get hours & values for title 
   start2 = future.dropna().tail(1)['y'].values[0]
