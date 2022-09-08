@@ -673,7 +673,7 @@ def benchmark_data():
     topsnap_views_total - LAG(topsnap_views_total) OVER (PARTITION BY name, story_id ORDER BY ranking) topsnap_daily_diff,
     unique_viewers_total - LAG(unique_viewers_total) OVER (PARTITION BY name, story_id ORDER BY ranking) unique_viewers_daily_diff
   FROM cte_2
-  WHERE published_at >= current_date - 120;''')
+  WHERE published_at >= current_date - 90;''')
 
   benchmarks = pd.read_gbq(sql_query2, credentials = credentials)
   return benchmarks
