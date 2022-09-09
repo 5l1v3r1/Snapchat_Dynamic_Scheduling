@@ -352,7 +352,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   
   if hours_number == 0:
     start = choose_hours - 24
-    retro_data = data[start:ending_hours]
+    retro_data = data[start:choose_hours]
     retro_data['y_daily'] = ((retro_data.loc[:, ['y']]) - (retro_data.loc[:, ['y']].shift(+1))).cumsum()
 
     #Construct different layout
