@@ -244,6 +244,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   data = data.loc[:, ['interval_time', 'topsnap_views']]
   data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
   data = data.drop_duplicates(subset='ds')
+  data = data.astype({'y' : 'int32'})
 
   hours_number = choose_hours - len(data)
   if len(data) >= choose_hours:
