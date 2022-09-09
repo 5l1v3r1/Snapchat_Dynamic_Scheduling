@@ -406,45 +406,45 @@ def forecast_dailyview(choose_episode, choose_hours):
 
     return channel_bench
 
-  if ending_hours <= 24:
+  if choose_hours <= 24:
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
     b_channel = b_channel.loc[b_channel['ranking'] == 24, ['topsnap_views_total']]
     channel_bench = b_channel['topsnap_views_total'].mean()
     day = 'Day 1'
 
-  elif ((ending_hours > 24) and (ending_hours <= 48)):
+  elif ((choose_hours > 24) and (choose_hours <= 48)):
     channel_bench = get_benchmarks(48)
     day = 'Day 2'
 
-  elif ((ending_hours > 48) and (ending_hours <= 72)):
+  elif ((choose_hours > 48) and (choose_hours <= 72)):
     channel_bench = get_benchmarks(72)
     day = 'Day 3'
 
-  elif ((ending_hours > 72) and (ending_hours <= 96)):
+  elif ((choose_hours > 72) and (choose_hours <= 96)):
     channel_bench = get_benchmarks(96)
     day = 'Day 4'
 
-  elif ((ending_hours > 96) and (ending_hours <= 120)):
+  elif ((choose_hours > 96) and (choose_hours <= 120)):
     channel_bench = get_benchmarks(120)
     day = 'Day 5'
 
-  elif ((ending_hours > 120) and (ending_hours <= 144)):
+  elif ((choose_hours > 120) and (choose_hours <= 144)):
     channel_bench = get_benchmarks(144)
     day = 'Day 6'
 
-  elif ((ending_hours > 144) and (ending_hours <= 168)):
+  elif ((choose_hours > 144) and (choose_hours <= 168)):
     channel_bench = get_benchmarks(168)
     day = 'Day 7'
 
-  elif ((ending_hours > 168) and (ending_hours <= 192)):
+  elif ((choose_hours > 168) and (choose_hours <= 192)):
     channel_bench = get_benchmarks(episode, 192)
     day = 'Day 8'
 
-  elif ((ending_hours > 192) and (ending_hours <= 216)):
+  elif ((choose_hours > 192) and (choose_hours <= 216)):
     channel_bench = get_benchmarks(episode, 216)
     day = 'Day 9'
 
-  elif ((ending_hours > 216) and (ending_hours <= 240)):
+  elif ((choose_hours > 216) and (choose_hours <= 240)):
     channel_bench = get_benchmarks(episode, 240)
     day = 'Day 10'
 
