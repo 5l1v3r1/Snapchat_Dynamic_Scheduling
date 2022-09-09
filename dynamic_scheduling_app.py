@@ -687,8 +687,8 @@ def benchmark_data():
     non_fin.*,
     dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
 
-FROM
-( --- non-financial numbers that are not aggregated
+  FROM
+  ( --- non-financial numbers that are not aggregated
     SELECT 
     name, 
     title,
@@ -723,8 +723,8 @@ FROM
     unique_viewers unique_viewers_total,
     drop_off_rate
 
-FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
-LEFT JOIN  EXTERNAL_QUERY(
+  FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
+  LEFT JOIN  EXTERNAL_QUERY(
      "projects/distribution-engine/locations/us/connections/postgres",
      """
     SELECT story_id::TEXT,
@@ -746,8 +746,8 @@ LEFT JOIN  EXTERNAL_QUERY(
        snap_id,
        ordinal,
        drop_off_rate
-from snap_studio_story_snap_metric
-where  ordinal =0;
+  from snap_studio_story_snap_metric
+  where  ordinal =0;
                 """
         ) AS dr USING (story_id) 
 
@@ -758,7 +758,7 @@ where  ordinal =0;
     
     ) non_fin
     ), 
-cte_2 AS(
+  cte_2 AS(
         SELECT name, 
         title, 
         published_at, 
@@ -772,12 +772,12 @@ cte_2 AS(
         FROM cte
         WHERE ranking in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240)
         )
-SELECT cte_2.*,
+  SELECT cte_2.*,
     cte_2.topsnap_views_total - LAG(cte_2.topsnap_views_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) topsnap_daily_diff,
     cte_2.unique_viewers_total - LAG(cte_2.unique_viewers_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) unique_viewers_daily_diff,
     split.best_test_ctr 
-FROM cte_2
-LEFT JOIN EXTERNAL_QUERY(
+  FROM cte_2
+  LEFT JOIN EXTERNAL_QUERY(
                             "projects/distribution-engine/locations/us/connections/postgres",
                             """
                             WITH cte AS
@@ -798,8 +798,8 @@ LEFT JOIN EXTERNAL_QUERY(
                             GROUP BY episode_name
                             """
                         ) AS split
-ON cte_2.title = split.title
-WHERE published_at >= current_date - 90;''')
+  ON cte_2.title = split.title
+  WHERE published_at >= current_date - 90;''')
 
   benchmarks = pd.read_gbq(sql_query2, credentials = credentials)
   return benchmarks
