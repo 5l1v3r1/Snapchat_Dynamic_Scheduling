@@ -458,7 +458,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   #Visualize layout
   fig = go.Figure(data=layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} {display} = <b>{last_24:,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} {display} = <b>{round(last_24):,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
