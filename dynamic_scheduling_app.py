@@ -437,15 +437,15 @@ def forecast_dailyview(choose_episode, choose_hours):
     day = 'Day 7'
 
   elif ((choose_hours > 168) and (choose_hours <= 192)):
-    channel_bench = get_benchmarks(episode, 192)
+    channel_bench = get_benchmarks(192)
     day = 'Day 8'
 
   elif ((choose_hours > 192) and (choose_hours <= 216)):
-    channel_bench = get_benchmarks(episode, 216)
+    channel_bench = get_benchmarks(216)
     day = 'Day 9'
 
   elif ((choose_hours > 216) and (choose_hours <= 240)):
-    channel_bench = get_benchmarks(episode, 240)
+    channel_bench = get_benchmarks(240)
     day = 'Day 10'
 
   #Perentage% Change for display
