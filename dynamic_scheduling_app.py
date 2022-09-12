@@ -265,20 +265,20 @@ def forecast_dailyview(choose_episode, choose_hours):
     prediction = m.predict(future)
 
     #Daily dataframe
-    show_prediction = prediction.iloc[-24:]
+    show_prediction = prediction.iloc[-25:]
     show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
     show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
 
-    if ((len(data) > choose_hours) and (choose_hours == 24)):
-      show_prediction = prediction[:choose_hours]
-      show_prediction['y_daily'] = show_prediction['y']
-      show_prediction['yhat_daily'] = show_prediction['yhat1']
+    #if ((len(data) > choose_hours) and (choose_hours == 24)):
+      #show_prediction = prediction[:choose_hours]
+      #show_prediction['y_daily'] = show_prediction['y']
+      #show_prediction['yhat_daily'] = show_prediction['yhat1']
 
-    elif ((len(data) > choose_hours) and (choose_hours > 24)):
-      beginning = choose_hours - 24
-      show_prediction = prediction[beginning:choose_hours]
-      show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
-      show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
+    #elif ((len(data) > choose_hours) and (choose_hours > 24)):
+      #beginning = choose_hours - 24
+      #show_prediction = prediction[beginning:choose_hours]
+      #show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
+      #show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
     
     #Get Confidence Intervals
     y = show_prediction['yhat_daily']
@@ -298,6 +298,7 @@ def forecast_dailyview(choose_episode, choose_hours):
     show_prediction['ci'] = 1.96 * show_prediction['running_std'] / np.sqrt(show_prediction['n'])
     show_prediction['yhat_lower'] = show_prediction['yhat_daily'] - show_prediction['ci']
     show_prediction['yhat_upper'] = show_prediction['yhat_daily'] + show_prediction['ci']
+    show_prediction = show_prediction.tail(24)
 
     return show_prediction
   
