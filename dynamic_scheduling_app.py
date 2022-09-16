@@ -811,8 +811,13 @@ def summary_table():
   summary_df = final_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
 
   #Fix dtypes
-  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].replace('None', 0)
-  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].astype('float').replace(0, np.nan)
+  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].replace('None', 0).astype('float')
+
+  summary_df = summary_df.fillna(0)
+  
+  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].replace(0, np.nan)
+  summary_df['Forecast % Against Average'] = summary_df['Forecast % Against Average'].replace(0, np.nan)
+  summary_df['Channel Benchmark'] = summary_df['Channel Benchmark'].replace(0, np.nan)
 
   return summary_df
 
