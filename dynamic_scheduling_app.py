@@ -1081,12 +1081,12 @@ def benchmark_data():
   return benchmarks
 
 # Create Sidebar 
-menu = ["Running Episode Summary", "Topsnap Forecast", "ML Test & Validate"]
+menu = ["All Episode Summary", "Topsnap Forecast", "ML Test & Validate"]
 choice = st.sidebar.selectbox("Menu", menu)
 
 st.write("*Forecasting is powered by NeuralProphet, and hourly data is derived from BigQuery - refreshed(cached) every 30 minutes*")
 
-if choice == 'Running Episode Summary':
+if choice == 'Episode Summary - Currently Running Episodes':
     # Create dropdown-menu / interactive forecast graph
     st.write("# Running Episode Performance")
 
