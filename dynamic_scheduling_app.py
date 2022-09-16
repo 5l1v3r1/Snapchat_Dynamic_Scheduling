@@ -1086,9 +1086,9 @@ choice = st.sidebar.selectbox("Menu", menu)
 
 st.write("*Forecasting is powered by NeuralProphet, and hourly data is derived from BigQuery - refreshed(cached) every 30 minutes*")
 
-if choice == 'Episode Summary - Currently Running Episodes':
+if choice == 'Episode Summary':
     # Create dropdown-menu / interactive forecast graph
-    st.write("# Running Episode Performance")
+    st.write("# Episode Summary - Currently Running Episodes")
 
     about_bar = st.expander("**About This Section**")
     about_bar.markdown("""
