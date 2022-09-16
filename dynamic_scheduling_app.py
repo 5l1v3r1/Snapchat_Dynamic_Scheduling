@@ -1094,7 +1094,7 @@ if choice == 'Running Episode Summary':
       df = update_data()
       benchmarks = benchmark_data()
       summary_df = summary_table()
-      st.dataframe(summary_df.style.apply(highlight_rows, axis=1))
+      st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']))
       
       #.applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
                            #"Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
