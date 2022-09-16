@@ -603,7 +603,7 @@ def summary_table():
   channels = latest_df.name.unique()
   channels_dict = {elem : pd.DataFrame() for elem in channels}
   model_channel = channels_dict
-  tts_model = model
+  model = tts_model()
 
   #Empty lists to store values from loop
   ctr_list = []
@@ -637,7 +637,7 @@ def summary_table():
 
     #Create and fit model 
     try:
-      model = tts_model
+      model = tts_model()
       metrics = model.fit(model_channel, freq="H")
       future = model.make_future_dataframe(model_channel, periods=hours, n_historic_predictions=len(model_channel)) 
       prediction = model.predict(future)
@@ -1092,7 +1092,6 @@ if choice == 'Running Episode Summary':
     if summary:
       df = update_data()
       benchmarks = benchmark_data()
-      model = tts_model()
       st.dataframe(summary_table(), use_container_width=True)
 
 
