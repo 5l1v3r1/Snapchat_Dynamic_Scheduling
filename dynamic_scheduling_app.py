@@ -693,6 +693,14 @@ def summary_table():
                           'Channel Benchmark': benchmark_list,
                          'Forecast % Against Average': trend_num_list
                          })
+  
+  #Fix dtypes for formatting
+  final_df['Test CTR(%)'] = final_df['Test CTR(%)'].replace('None', 0).astype('float')
+  final_df = final_df.fillna(0)
+  final_df['Test CTR(%)'] = final_df['Test CTR(%)'].replace(0, np.nan)
+  final_df['Forecast % Against Average'] = final_df['Forecast % Against Average'].replace(0, np.nan)
+  final_df['Channel Benchmark'] = final_df['Channel Benchmark'].replace(0, np.nan)
+
   #Create Decision logic
   final_df['Consideration'] = np.select(
     [   #Let It Ride
@@ -808,16 +816,10 @@ def summary_table():
              'Forecast Period',
              'Channel Benchmark',
              'Forecast % Against Average']
+
+  #Creat summary df, sort and reset index
   summary_df = final_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
-
-  #Fix dtypes
-  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].replace('None', 0).astype('float')
-
-  summary_df = summary_df.fillna(0)
-  
-  summary_df['Test CTR(%)'] = summary_df['Test CTR(%)'].replace(0, np.nan)
-  summary_df['Forecast % Against Average'] = summary_df['Forecast % Against Average'].replace(0, np.nan)
-  summary_df['Channel Benchmark'] = summary_df['Channel Benchmark'].replace(0, np.nan)
+  summary_df = summary_df.reset_index().drop(columns=['index'])
 
   return summary_df
 
