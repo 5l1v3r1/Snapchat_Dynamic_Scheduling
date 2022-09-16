@@ -585,6 +585,271 @@ def crossvalidate_five(tts_episode):
   
   return dataframe
 
+#Summary Table Function 
+
+@st.cache(ttl=3600)
+def summary_table():
+  #Function for rounding to nearest 24 hour
+  def round_to_multiple(number, multiple):
+    return multiple * math.ceil(number / multiple)
+
+  #Get episodes currently running from each channel
+  latest = df.loc[df.groupby('name').published_at.idxmax()]
+  latest_df = df[df['story_id'].isin(latest.story_id)]
+
+  #Store episode info and create channel dictionary for looping
+  ids = latest_df.story_id.unique()
+  episodes = latest_df.title.unique()
+  channels = latest_df.name.unique()
+  channels_dict = {elem : pd.DataFrame() for elem in channels}
+  model_channel = channels_dict
+
+  #Empty lists to store values from loop
+  ctr_list = []
+  actual_list = []
+  hours_running = []
+  trend_actual = []
+  forecast_list = []
+  forecast_period = []
+  benchmark_list = []
+  trend_num_list = []
+  actual_benchmark = []
+
+  #Loop to train each channel's episode for forecasting, and storing individual values in each list
+  for key in channels_dict.keys():
+    channels_dict[key] = latest_df[:][latest_df.name == key]
+
+    model_channel = channels_dict[key].loc[:, ['interval_time', 'topsnap_views']]
+    model_channel = model_channel.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
+    model_channel = model_channel.drop_duplicates(subset='ds')
+    model_channel = model_channel.astype({'y' : 'int32'})
+
+    #Number of hours running of the current episode
+    data_length = len(model_channel)
+    hours_running.append(data_length)
+
+    #Nearest 24-hour window
+    ending_hours = round_to_multiple(data_length, 24)
+    forecast_period.append(ending_hours)
+    #Number of hours to forecast
+    hours = round(ending_hours - data_length)
+
+    #Create and fit model 
+    try:
+      model = model
+      metrics = model.fit(model_channel, freq="H")
+      future = model.make_future_dataframe(model_channel, periods=hours, n_historic_predictions=len(model_channel)) 
+      prediction = model.predict(future)
+
+    except TypeError:
+      pass
+
+    #Store the last actual value
+    last_actual = future.dropna().tail(1)['y'].values[0]
+    actual_list.append(last_actual)
+
+    #Store the channel benchmark at the actual value hour 
+    actual_bench_df = df[df['name'].isin(channels_dict[key].name)]
+    actual_bench_df = actual_bench_df.loc[actual_bench_df['ranking']==data_length]
+    actual_bench = actual_bench_df['topsnap_views'].mean()
+    actual_benchmark.append(actual_bench)
+
+    #Store the final forecasting value
+    forecasts = prediction.tail(1)['yhat1'].values[0]
+    forecast_list.append(forecasts)
+
+    #Store the nearest 24 hour benchmark
+    bench = benchmarks[benchmarks['name'].isin(channels_dict[key].name)]
+    bench = bench.loc[bench['ranking'] == ending_hours]
+    channel_bench = bench['topsnap_views_total'].mean()
+    benchmark_list.append(channel_bench)
+
+    #Store CTR
+    ctr_df = latest[latest['name'].isin(channels_dict[key].name)]
+    ctr = ctr_df['best_test_ctr'].values[0]
+    #if ctr is not None:
+      #ctr = round((ctr*100),2)
+    ctr_list.append(ctr)
+
+    #Store % Difference from Actual 
+    trending_actual = ((last_actual - actual_bench) / actual_bench)
+    trend_actual.append(trending_actual)
+
+    #Store % Difference for forecast
+    trending_number = ((forecasts - channel_bench) / channel_bench)
+    trend_num_list.append(trending_number)
+  
+  #Create Summary df
+  summary_df = pd.DataFrame({'Story ID': ids,
+                         'Channel': channels,
+                         'Episode': episodes,
+                         'Test CTR(%)': ctr_list,
+                         'Topsnap Performance': actual_list,
+                         'Hours Running': hours_running,
+                         "Actual % Against Avg": trend_actual,
+                         'Topsnap Forecast': forecast_list,
+                         'Forecast Period': forecast_period,
+                          'Channel Benchmark': benchmark_list,
+                         'Forecast % Against Average': trend_num_list
+                         })
+  #Create Decision logic
+  summary_df['Consideration'] = np.select(
+    [   #Let It Ride
+        #No shaba; trending +25% at 96 hours or before
+        (~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+        &(final_df['Forecast Period']<=96) & (final_df['Forecast % Against Average']>=0.25)
+        #Any; at 120 hours or more, trending +90% 
+        |(final_df['Forecast Period']>=120) & (final_df['Forecast % Against Average']>=0.9)
+        #Shaba; between 72 and 96 trending at our above 20%; 
+        |(final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys'])) 
+        &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+        &(final_df['Forecast % Against Average']>=0.25),
+
+      # Investigate - Bullish
+      #Any; at 120 or greater trending between 50% and 90%
+      (final_df['Forecast Period']>=120)
+      &(final_df['Forecast % Against Average']>=0.5) & (final_df['Forecast % Against Average']<=0.9)
+      #High CTR between 72 and 96 hours where % is positive and % is increasing (by 0.1)
+      |(final_df['Test CTR(%)'] >=0.28)
+      &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+      &(final_df['Forecast % Against Average']>0)
+      &((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) >= 0.1)
+      #High CTR between 72 and 96 hours where % is negative, but % is increasing (by 0.2)
+      |(final_df['Test CTR(%)'] >=0.28)
+      &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+      &(final_df['Forecast % Against Average']<0) & (final_df['Actual % Against Avg']<0)
+      &((final_df['Forecast % Against Average'] + final_df['Actual % Against Avg']) >= 0.2),
+     
+     #Investigate - Bearish 
+     #Not Shaba; 48-96 hours trending -25% to -50%
+     (~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Forecast Period']>=48) & (final_df['Forecast Period']<=96)
+     &(final_df['Forecast % Against Average']<= -0.25) & (final_df['Forecast % Against Average']> -0.5)
+     #Shaba; between 72 and 96 hours trending -25% to -50%
+     |(final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+     &(final_df['Forecast % Against Average']<= -0.25) & (final_df['Forecast % Against Average']> -0.5)
+      #High CTR; 72 hours and trend is at or below -25%
+     |(final_df['Test CTR(%)'] >=0.28)
+     &(final_df['Forecast Period']==72)
+     &(final_df['Forecast % Against Average']<= -0.25)
+     #High CTR; between 72 and 96 hours; where trend is below 0 (to -50%) and % is decreasing (by -0.2)
+     |(final_df['Test CTR(%)'] >=0.28)
+     &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+     &(final_df['Forecast % Against Average']<0) & (final_df['Forecast % Against Average'] > -0.5)
+     &((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) < -0.2)
+     
+     #Any between 72 to 96 hours, where trend is positive but % is decreasing (by 0.2)
+     |(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+     &(final_df['Forecast % Against Average']>0)
+     &((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) <= -0.2), 
+
+     #Investigate - Average 
+     #Any; between 72 and 96 hours trending anywhere from -25% to +25%
+     (final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+     &(final_df['Forecast % Against Average'] > -0.25)
+     &(final_df['Forecast % Against Average'] < 0.25)
+     #Any; 120 hour or greater trending 25-50% above average
+     |(final_df['Forecast Period']>=120)
+     &(final_df['Forecast % Against Average']> 0.25) & (final_df['Forecast % Against Average']< 0.5)
+     #Non-Shaba; at 48 hours trending anywhere from -25% to +25%
+     |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Forecast Period'] == 48)
+     &(final_df['Forecast % Against Average'] > -0.25)
+     &(final_df['Forecast % Against Average'] < 0.25),
+     
+     #Replace It
+     #Any; 120 hours or more trending less than +25% above average
+     (final_df['Forecast Period']>=120)
+     &(final_df['Forecast % Against Average']< 0.25)
+     #No CTR at 72 trending below -50% 
+     |(final_df['Test CTR(%)'].isna())
+     &(final_df['Forecast Period']==72)
+     &(final_df['Forecast % Against Average']<= -0.5)
+     #Low CTR; at 72 trending -50% or below
+     |(final_df['Test CTR(%)'] < 0.28)
+     &(final_df['Forecast Period']==72)
+     &(final_df['Forecast % Against Average']<= -0.5)
+     #Any; at 96 and trending below -50%
+     |(final_df['Forecast Period']==96)
+     &(final_df['Forecast % Against Average']<= -0.5)
+     #Non Shaba low ctr at 48 hours, trending below -50%
+     |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Test CTR(%)'] < 0.28)
+     &(final_df['Forecast Period'] ==48)
+     &(final_df['Forecast % Against Average']<= -0.5)
+     #Non Shab "" CTR is none
+     |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Test CTR(%)'].isna())
+     &(final_df['Forecast Period'] ==48)
+     &(final_df['Forecast % Against Average']<= -0.5)
+
+    ], 
+
+    ['Let It Ride', 
+     'Investigate - Bullish', 
+     'Investigate - Bearish',
+     'Investigate - Average',
+     'Replace It'
+    ], 
+    default='No Decision'
+    )
+  #Reorder df columns and sort by forecast %
+  df_order = ['Story ID',
+            'Channel',
+            'Episode',
+            'Consideration', 
+            'Test CTR(%)',
+            'Topsnap Performance',
+            'Hours Running',
+            'Actual % Against Avg',
+             'Topsnap Forecast',
+             'Forecast Period',
+             'Channel Benchmark',
+             'Forecast % Against Average']
+  summary_df = summary_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
+
+  #Create functions for conditional formatting
+  def highlight_rows(row):
+    value = row.loc['Consideration']
+    if value == 'Let It Ride':
+        color = '#BAFFC9' #Green
+    elif value == 'Investigate - Bullish':
+        color = '#BAE1FF' #Blue
+    elif value == 'Investigate - Bearish':
+        color = '#F4A460' # sandy brown
+    elif value == 'Investigate - Average':
+        color = '#FFFACD' #Lemon
+    elif value == 'Replace It':
+        color = '#FF6347'#tomato
+    elif value == 'No Decision':
+        color = '#F5F5F5' #white smoke
+    return ['background-color: {}'.format(color) for r in row]
+
+  def highlight_cells(val):
+    if val >=1.0:
+      color = '#00e673' #medium dark green
+    elif val >= 0.5:
+      color = '#66ffb3' #medium green
+    elif val > 0:
+      color = '#BAFFC9' #green
+    elif val >= -0.25:
+      color = '#ffc2b3' #lightred 
+    elif val >= -0.80:
+      color = '#ff8566' #tomato
+    elif val < -0.80:
+      color = '#ff471a' #red
+    else:
+      color = '#F5F5F5' #whitesmoke
+    return 'background-color: {}'.format(color)
+
+  #Apply styling
+  summary_df = summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
+                           "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
+                           "Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
+
+  return summary_df
+
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
 #@st.experimental_memo(ttl=1800)
 @st.cache(ttl=1800)
@@ -807,10 +1072,28 @@ def benchmark_data():
   return benchmarks
 
 # Create Sidebar 
-menu = ["Topsnap Forecast", "ML Test & Validate"]
+menu = ["Running Episode Summary", "Topsnap Forecast", "ML Test & Validate"]
 choice = st.sidebar.selectbox("Menu", menu)
 
-st.write("*Forecasting is powered by hourly BigQuery data, refreshed every 30 minutes*")
+st.write("*Forecasting is powered by NeuralProphet, and hourly data is derived from BigQuery - refreshed(cached) every 30 minutes*")
+
+if choice == 'Running Episode Summary':
+    # Create dropdown-menu / interactive forecast graph
+    st.write("# Running Episode Performance")
+
+    about_bar = st.expander("**About This Section**")
+    about_bar.markdown("""
+                        * Click the 'View Summary Table' below to see metrics and forecasts on all currently running episodes for all Snapchat channels
+                        * "Considerations" are provided based on the current metrics and dynamic scheduling logic, however, it is strongly recommended that you use this table in conjunction with the Topsnap Forecasting tab to make scheduling decisions. 
+                       """)
+
+    summary = st.button("View Summary Table")
+    if summary:
+      df = update_data()
+      benchmarks = benchmark_data()
+      model = tts_model()
+      st.dataframe(summary_table(), use_container_width=True)
+
 
 if choice == 'Topsnap Forecast':
     
@@ -820,8 +1103,8 @@ if choice == 'Topsnap Forecast':
     about_bar = st.expander("**About This Section**")
     about_bar.markdown("""
                         * The interactive chart below showcases the predicted forecast of topsnaps for your chosen episode (blue line) vs. actual values (white circle) as well as forecasted values into the future using a Neural Network.
-                        * Input the episode's Story ID and number of hours you would like to forecast in the future.
-                        * Click the "Forecast Topsnaps" button to run the model and visualize the results.
+                        * Input the episode's Story ID and hourly forecast window
+                        * Click the "Forecast Topsnaps" button to run the model and visualize the results - 'Total View' will display an episode's lifetime performance up to the hourly window you select, while 'Daily View' will only display performance of the past 24 hours from the window you select.
 
                         **NOTE: The number of hours to forecast should always remain at 24 hours or below - a general rule of thumb is that the number of hours forecasted should always be lower than the number of hours we currently have data for**
                        """)
