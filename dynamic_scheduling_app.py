@@ -1089,11 +1089,12 @@ if choice == 'Running Episode Summary':
     if summary:
       df = update_data()
       benchmarks = benchmark_data()
-      st.dataframe(summary_table())
+      #st.dataframe(summary_table())
+      summary_df = summary_table()
 
-      #summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
-                           #"Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
-                           #"Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
+      summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
+                           "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
+                           "Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
 
 
 if choice == 'Topsnap Forecast':
