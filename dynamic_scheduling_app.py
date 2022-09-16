@@ -1092,7 +1092,7 @@ if choice == 'Running Episode Summary':
     if summary:
       df = update_data()
       benchmarks = benchmark_data()
-      st.table(summary_table(), use_container_width=True)
+      st.write(summary_table(), use_container_width=True)
 
 
 if choice == 'Topsnap Forecast':
