@@ -808,7 +808,7 @@ def summary_table():
              'Forecast Period',
              'Channel Benchmark',
              'Forecast % Against Average']
-  summary_df = summary_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
+  summary_df = final_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
 
   #Create functions for conditional formatting
   def highlight_rows(row):
