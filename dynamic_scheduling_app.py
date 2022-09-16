@@ -681,7 +681,7 @@ def summary_table():
     trend_num_list.append(trending_number)
   
   #Create Summary df
-  summary_df = pd.DataFrame({'Story ID': ids,
+  final_df = pd.DataFrame({'Story ID': ids,
                          'Channel': channels,
                          'Episode': episodes,
                          'Test CTR(%)': ctr_list,
@@ -694,7 +694,7 @@ def summary_table():
                          'Forecast % Against Average': trend_num_list
                          })
   #Create Decision logic
-  summary_df['Consideration'] = np.select(
+  final_df['Consideration'] = np.select(
     [   #Let It Ride
         #No shaba; trending +25% at 96 hours or before
         (~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
