@@ -810,43 +810,47 @@ def summary_table():
              'Forecast % Against Average']
   summary_df = final_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
 
-  return summary_df
-
-#Create functions for conditional formatting
-#Function for highlighting rows
-def highlight_rows(row):
-  value = row.loc['Consideration']
-  if value == 'Let It Ride':
+  #Create functions for conditional formatting
+  #Function for highlighting rows
+  def highlight_rows(row):
+    value = row.loc['Consideration']
+    if value == 'Let It Ride':
       color = '#BAFFC9' #Green
-  elif value == 'Investigate - Bullish':
+    elif value == 'Investigate - Bullish':
       color = '#BAE1FF' #Blue
-  elif value == 'Investigate - Bearish':
+    elif value == 'Investigate - Bearish':
       color = '#F4A460' # sandy brown
-  elif value == 'Investigate - Average':
+    elif value == 'Investigate - Average':
       color = '#FFFACD' #Lemon
-  elif value == 'Replace It':
+    elif value == 'Replace It':
       color = '#FF6347'#tomato
-  elif value == 'No Decision':
+    elif value == 'No Decision':
       color = '#F5F5F5' #white smoke
-  return ['background-color: {}'.format(color) for r in row]
+    return ['background-color: {}'.format(color) for r in row]
 
-#Function for highlighting cells
-def highlight_cells(val):
-  if val >=1.0:
-    color = '#00e673' #medium dark green
-  elif val >= 0.5:
-    color = '#66ffb3' #medium green
-  elif val > 0:
-    color = '#BAFFC9' #green
-  elif val >= -0.25:
-    color = '#ffc2b3' #lightred 
-  elif val >= -0.80:
-    color = '#ff8566' #tomato
-  elif val < -0.80:
-    color = '#ff471a' #red
-  else:
-    color = '#F5F5F5' #whitesmoke
-  return 'background-color: {}'.format(color)
+  #Function for highlighting cells
+  def highlight_cells(val):
+    if val >=1.0:
+      color = '#00e673' #medium dark green
+    elif val >= 0.5:
+      color = '#66ffb3' #medium green
+    elif val > 0:
+      color = '#BAFFC9' #green
+    elif val >= -0.25:
+      color = '#ffc2b3' #lightred 
+    elif val >= -0.80:
+      color = '#ff8566' #tomato
+    elif val < -0.80:
+      color = '#ff471a' #red
+    else:
+      color = '#F5F5F5' #whitesmoke
+    return 'background-color: {}'.format(color)
+
+  summary_df = summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
+                           "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
+                           "Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
+
+  return summary_df
 
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
 #@st.experimental_memo(ttl=1800)
@@ -1089,13 +1093,9 @@ if choice == 'Running Episode Summary':
     if summary:
       df = update_data()
       benchmarks = benchmark_data()
+      
       #st.dataframe(summary_table())
-      summary_df = summary_table()
-
-      summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
-                           "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
-                           "Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
-
+      st.write(summary_table())
 
 if choice == 'Topsnap Forecast':
     
