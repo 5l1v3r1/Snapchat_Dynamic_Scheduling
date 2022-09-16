@@ -844,12 +844,10 @@ def summary_table():
       color = '#F5F5F5' #whitesmoke
     return 'background-color: {}'.format(color)
 
-  #Apply styling
-  summary_df = summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
+  #Apply styling and return
+  return summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}",
                            "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
                            "Topsnap Forecast": "{:,.0f}", "Channel Benchmark": "{:,.0f}"})
-
-  return summary_df
 
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
 #@st.experimental_memo(ttl=1800)
