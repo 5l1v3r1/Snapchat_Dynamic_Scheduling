@@ -1207,7 +1207,7 @@ if choice == 'Episode Summary':
             {valueAsNumber = null;} 
             
         else {valueAsNumber = parseFloat(params.newValue);}
-        return valueAsNumber;
+        return valueAsNumber;}
 
         columnDefs: [
         {field: 'Forecast % Against Average',
