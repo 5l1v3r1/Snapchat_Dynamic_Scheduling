@@ -580,7 +580,7 @@ def crossvalidate_five(tts_episode):
 
 #Summary Table Function 
 
-@st.cache(ttl=3600)
+@st.experimental_memo(ttl=3600)
 def summary_table():
   #Function for rounding to 24 window
   def round_to_multiple(number, multiple):
@@ -1130,29 +1130,32 @@ if choice == 'Episode Summary':
                         * Click the 'View Summary Table' below to see metrics and forecasts on all currently running episodes for all Snapchat channels
                         * "Considerations" are provided based on the current metrics and dynamic scheduling logic, however, it is strongly recommended that you use this table in conjunction with the Topsnap Forecasting tab to make scheduling decisions.
 
-                        **NOTE: If the Channel doesn't appear in the table, then there is simply not enough running hours for its current episode to make a prediction yet - making a dynamic decision at this point would be irrelevant as it would be too early to assess performance regardless** 
+                        **NOTE: If the Channel doesn't appear in the table, then there is simply not enough running hours for its current episode to make a prediction yet - making a dynamic decision at this point would be irrelevant as it would be too early to assess performance** 
                        """)
+
+    df = update_data()
+    benchmarks = benchmark_data()
 
     summary = st.button("View Summary Table")
     if summary:
-      df = update_data()
-      benchmarks = benchmark_data()
+      #df = update_data()
+      #benchmarks = benchmark_data()
       summary_df = summary_table()
       st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
       "Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
 
     ag_chart = st.button("Test AG Grid")
     if ag_chart:
-      df = update_data()
-      benchmarks = benchmark_data()
-      summary_df = summary_table()
+      #df = update_data()
+      #benchmarks = benchmark_data()
+      ag_df = summary_table()
 
       percentages = ['Test CTR(%)', 'Actual % Against Avg', 'Forecast % Against Average']
       values = ['Topsnap Performance', 'Actual Hours Benchmark', 'Topsnap Forecast', 'Channel Benchmark']
       for column in percentages:
-        summary_df[column] = summary_df[column].map("{:.2%}".format)
+        ag_df[column] = ag_df[column].map("{:.2%}".format)
       for column in values:
-        summary_df[column] = summary_df[column].map("{:,.0f}".format)
+        ag_df[column] = ag_df[column].map("{:,.0f}".format)
 
       jscode = JsCode("""
             function(params) {
@@ -1195,11 +1198,11 @@ if choice == 'Episode Summary':
             };
             """)
       
-      gb = GridOptionsBuilder.from_dataframe(summary_df)
+      gb = GridOptionsBuilder.from_dataframe(ag_df)
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
       
-      grid_response = AgGrid(summary_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
+      grid_response = AgGrid(ag_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
 
      #grid_response
 
