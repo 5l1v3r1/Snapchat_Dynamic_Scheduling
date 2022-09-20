@@ -1153,7 +1153,7 @@ if choice == 'Episode Summary':
       percentages = ['Test CTR(%)', 'Actual % Against Avg', 'Forecast % Against Average']
       values = ['Topsnap Performance', 'Actual Hours Benchmark', 'Topsnap Forecast', 'Channel Benchmark']
       for column in percentages:
-        ag_df[column] = ag_df[column].map("{:.2%}".format)
+        ag_df[column] = ag_df[column].map("{:.2}".format).astype('float')
       for column in values:
         ag_df[column] = ag_df[column].map("{:,.0f}".format)
 
@@ -1198,11 +1198,25 @@ if choice == 'Episode Summary':
             };
             """)
       
+      jscells = JsCode("""columnDefs: [
+                                      {
+                                        field: 'Forecast % Against Average',
+                                        cellClassRules: {
+                                                          '#00e673': 'x >= 1.0',
+                                                          '#66ffb3': 'x >= 0.5',
+                                                          '#BAFFC9': 'x > 0',
+                                                          '#ffc2b3': 'x <= -0.25'
+                                                        }
+                                      }
+                                      ]
+                      """)
+
       gb = GridOptionsBuilder.from_dataframe(ag_df)
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
+      gridOptions['getCellStyle'] = jscells
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
