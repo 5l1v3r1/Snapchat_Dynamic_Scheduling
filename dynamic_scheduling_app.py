@@ -1199,15 +1199,6 @@ if choice == 'Episode Summary':
             """)
       
       jscells = JsCode("""
-      
-      function numberParser(params) {
-        const newValue = params.newValue;
-        let valueAsNumber;
-        if (newValue === null || newValue === undefined || newValue === '') 
-            {valueAsNumber = null;} 
-            
-        else {valueAsNumber = parseFloat(params.newValue);}
-        return valueAsNumber;}
 
         columnDefs: [
         {field: 'Forecast % Against Average',
@@ -1220,6 +1211,15 @@ if choice == 'Episode Summary':
         }
          }
           ];
+      function numberParser(params) {
+        const newValue = params.newValue;
+        let valueAsNumber;
+        if (newValue === null || newValue === undefined || newValue === '') 
+            {valueAsNumber = null;} 
+            
+        else {valueAsNumber = parseFloat(params.newValue);}
+        return valueAsNumber;}
+        
       const gridOptions = {
       columnDefs: columnDefs,
       defaultColDef: {
