@@ -589,32 +589,34 @@ def crossvalidate_five(tts_episode):
 
 @st.cache(ttl=3600)
 def summary_table():
-  #Function for rounding to nearest 24 hour
+  #Function for rounding to 24 window
   def round_to_multiple(number, multiple):
     return multiple * math.ceil(number / multiple)
 
   #Get episodes currently running from each channel
   latest = df.loc[df.groupby('name').published_at.idxmax()]
   latest_df = df[df['story_id'].isin(latest.story_id)]
+  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic'])]
 
   #Store episode info and create channel dictionary for looping
-  ids = latest_df.story_id.unique()
-  episodes = latest_df.title.unique()
   channels = latest_df.name.unique()
   channels_dict = {elem : pd.DataFrame() for elem in channels}
   model_channel = channels_dict
-  model = tts_model()
 
   #Empty lists to store values from loop
-  ctr_list = []
-  actual_list = []
-  hours_running = []
-  trend_actual = []
+  id_list = []
+  episode_list = []
+  channel_list = [] 
+
   forecast_list = []
+  hours_running = []
   forecast_period = []
   benchmark_list = []
   trend_num_list = []
+  ctr_list = []
+  actual_list = []
   actual_benchmark = []
+  trend_actual = []
 
   #Loop to train each channel's episode for forecasting, and storing individual values in each list
   for key in channels_dict.keys():
@@ -627,11 +629,8 @@ def summary_table():
 
     #Number of hours running of the current episode
     data_length = len(model_channel)
-    hours_running.append(data_length)
-
     #Nearest 24-hour window
     ending_hours = round_to_multiple(data_length, 24)
-    forecast_period.append(ending_hours)
     #Number of hours to forecast
     hours = round(ending_hours - data_length)
 
@@ -642,16 +641,34 @@ def summary_table():
       future = model.make_future_dataframe(model_channel, periods=hours, n_historic_predictions=len(model_channel)) 
       prediction = model.predict(future)
 
-    except TypeError:
-      pass
+    except ValueError:
+      continue
+    
+    #Append after try/except block 
+    #ID
+    id_df = df[df['story_id'].isin(channels_dict[key].story_id)]
+    id = id_df.head(1)['story_id'].values[0]
+    id_list.append(id)
+    #Episode 
+    episode_df = df[df['title'].isin(channels_dict[key].title)]
+    episode = episode_df.head(1)['title'].values[0]
+    episode_list.append(episode)
+    #Channels
+    channel_df = df[df['name'].isin(channels_dict[key].name)]
+    channel = channel_df.head(1)['name'].values[0]
+    channel_list.append(channel)
+
+    #Append previous variables
+    hours_running.append(data_length)
+    forecast_period.append(ending_hours)
 
     #Store the last actual value
     last_actual = future.dropna().tail(1)['y'].values[0]
     actual_list.append(last_actual)
 
     #Store the channel benchmark at the actual value hour 
-    actual_bench_df = df[df['name'].isin(channels_dict[key].name)]
-    actual_bench_df = actual_bench_df.loc[actual_bench_df['ranking']==data_length]
+    #actual_bench_df = df[df['name'].isin(channels_dict[key].name)]
+    actual_bench_df = channel_df.loc[channel_df['ranking']==data_length]
     actual_bench = actual_bench_df['topsnap_views'].mean()
     actual_benchmark.append(actual_bench)
 
@@ -676,21 +693,22 @@ def summary_table():
     trending_actual = ((last_actual - actual_bench) / actual_bench)
     trend_actual.append(trending_actual)
 
-    #Store % Difference for forecast
-    trending_number = ((forecasts - channel_bench) / channel_bench)
-    trend_num_list.append(trending_number)
+    #Store % Difference from Forecast 
+    trending = ((forecasts - channel_bench) / channel_bench)
+    trend_num_list.append(trending)
   
   #Create Summary df
-  final_df = pd.DataFrame({'Story ID': ids,
-                         'Channel': channels,
-                         'Episode': episodes,
+  final_df = pd.DataFrame({'Story ID': id_list,
+                         'Channel': channel_list,
+                         'Episode': episode_list,
                          'Test CTR(%)': ctr_list,
                          'Topsnap Performance': actual_list,
                          'Hours Running': hours_running,
+                         "Actual Hours Benchmark": actual_benchmark,
                          "Actual % Against Avg": trend_actual,
                          'Topsnap Forecast': forecast_list,
                          'Forecast Period': forecast_period,
-                          'Channel Benchmark': benchmark_list,
+                         'Channel Benchmark': benchmark_list,
                          'Forecast % Against Average': trend_num_list
                          })
   
@@ -704,19 +722,30 @@ def summary_table():
   #Create Decision logic
   final_df['Consideration'] = np.select(
     [   #Let It Ride
-        #No shaba; trending +25% at 96 hours or before
+        #No shaba; between 48-96 hours and trending 25% or above
         (~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
-        &(final_df['Forecast Period']<=96) & (final_df['Forecast % Against Average']>=0.25)
-        #Any; at 120 hours or more, trending +90% 
-        |(final_df['Forecast Period']>=120) & (final_df['Forecast % Against Average']>=0.9)
-        #Shaba; between 72 and 96 trending at our above 20%; 
+        &(final_df['Forecast Period']>24) &(final_df['Forecast Period']<=96) 
+        &(final_df['Forecast % Against Average']>=0.25)
+        #Shaba; between 72 and 96 trending at our above 25%; 
         |(final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys'])) 
         &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
-        &(final_df['Forecast % Against Average']>=0.25),
+        &(final_df['Forecast % Against Average']>=0.25)
+        #Any; between 120 and 168 trending +90% 
+        |(final_df['Forecast Period']>=120) & (final_df['Forecast Period']<=168)
+        &(final_df['Forecast % Against Average']>=0.9) 
+        #Any between 168 and 196 hours and trending 150% or greater
+        |(final_df['Forecast Period']>168) & (final_df['Forecast Period']<=192)
+        &(final_df['Forecast % Against Average']>=1.5)
+        #Any at 192 trending 150% or greater
+        |(final_df['Forecast Period']==192)
+        &(final_df['Forecast % Against Average']>=1.5)
+        #Any between 216 and 240
+        |(final_df['Forecast Period']>=216) & (final_df['Forecast Period']<=240)
+        &(final_df['Forecast % Against Average']>=2.0),
 
       # Investigate - Bullish
-      #Any; at 120 or greater trending between 50% and 90%
-      (final_df['Forecast Period']>=120)
+      #Any; at 120 to 168 trending between 50% and 90%
+      (final_df['Forecast Period']>=120) &(final_df['Forecast Period']>=168)
       &(final_df['Forecast % Against Average']>=0.5) & (final_df['Forecast % Against Average']<=0.9)
       #High CTR between 72 and 96 hours where % is positive and % is increasing (by 0.1)
       |(final_df['Test CTR(%)'] >=0.28)
@@ -734,43 +763,52 @@ def summary_table():
      (~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
      &(final_df['Forecast Period']>=48) & (final_df['Forecast Period']<=96)
      &(final_df['Forecast % Against Average']<= -0.25) & (final_df['Forecast % Against Average']> -0.5)
+     #Not Shaba; 48hours with high CTR and trending -50% or below
+     |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
+     &(final_df['Test CTR(%)'] >=0.28)
+     &(final_df['Forecast Period']==48)
+     &(final_df['Forecast % Against Average']<= -0.5)
      #Shaba; between 72 and 96 hours trending -25% to -50%
      |(final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
      &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
      &(final_df['Forecast % Against Average']<= -0.25) & (final_df['Forecast % Against Average']> -0.5)
-      #High CTR; 72 hours and trend is at or below -25%
+     #All shows; High CTR with -50% or lower % at 72
      |(final_df['Test CTR(%)'] >=0.28)
      &(final_df['Forecast Period']==72)
-     &(final_df['Forecast % Against Average']<= -0.25)
-     #High CTR; between 72 and 96 hours; where trend is below 0 (to -50%) and % is decreasing (by -0.2)
-     |(final_df['Test CTR(%)'] >=0.28)
-     &(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
-     &(final_df['Forecast % Against Average']<0) & (final_df['Forecast % Against Average'] > -0.5)
-     &((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) < -0.2)
-     
+     &(final_df['Forecast % Against Average'] <= -0.50)
+     # Any; between 72 and 96 where trend between -25% and +25% but is decreasing significantly
+     |(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
+     &(final_df['Actual % Against Avg']> -0.25) &(final_df['Actual % Against Avg']< 0.25)
+     & ((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) <= -0.2)
      #Any between 72 to 96 hours, where trend is positive but % is decreasing (by 0.2)
      |(final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
-     &(final_df['Forecast % Against Average']>0)
+     &(final_df['Actual % Against Avg']>0)
      &((final_df['Forecast % Against Average'] - final_df['Actual % Against Avg']) <= -0.2), 
 
      #Investigate - Average 
-     #Any; between 72 and 96 hours trending anywhere from -25% to +25%
+     #Any; between 72 and 96 hours trending anywhere from -25% to +25% (non inclusive)
      (final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
      &(final_df['Forecast % Against Average'] > -0.25)
      &(final_df['Forecast % Against Average'] < 0.25)
-     #Any; 120 hour or greater trending 25-50% above average
-     |(final_df['Forecast Period']>=120)
-     &(final_df['Forecast % Against Average']> 0.25) & (final_df['Forecast % Against Average']< 0.5)
+     #Any; 120 to 168  trending 0-50% above average
+     |(final_df['Forecast Period']>=120)&(final_df['Forecast Period']<=168)
+     &(final_df['Forecast % Against Average']> 0) & (final_df['Forecast % Against Average']< 0.5)
      #Non-Shaba; at 48 hours trending anywhere from -25% to +25%
      |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
      &(final_df['Forecast Period'] == 48)
      &(final_df['Forecast % Against Average'] > -0.25)
-     &(final_df['Forecast % Against Average'] < 0.25),
+     &(final_df['Forecast % Against Average'] < 0.25)
+     #Any at 192 between 100% and 150%
+     |(final_df['Forecast Period'] == 192)
+     &(final_df['Forecast % Against Average'] >= 1.0) &(final_df['Forecast % Against Average'] < 1.5)
+     #Any between 216 and 240 trending 200% or greater 
+     |(final_df['Forecast Period'] >= 216) &(final_df['Forecast Period'] <= 240)
+     &(final_df['Forecast % Against Average'] >= 2.0),
      
      #Replace It
-     #Any; 120 hours or more trending less than +25% above average
-     (final_df['Forecast Period']>=120)
-     &(final_df['Forecast % Against Average']< 0.25)
+     #Any; 120 to 168 trending 0% or less
+     (final_df['Forecast Period']>=120) &(final_df['Forecast Period']<=168)
+     &(final_df['Forecast % Against Average']<= 0)
      #No CTR at 72 trending below -50% 
      |(final_df['Test CTR(%)'].isna())
      &(final_df['Forecast Period']==72)
@@ -792,6 +830,9 @@ def summary_table():
      &(final_df['Test CTR(%)'].isna())
      &(final_df['Forecast Period'] ==48)
      &(final_df['Forecast % Against Average']<= -0.5)
+     #Any between 192 and 240 below 100%
+     |(final_df['Forecast Period'] >= 192) &(final_df['Forecast Period'] <= 240)
+     &(final_df['Forecast % Against Average'] < 1.0)
 
     ], 
 
@@ -802,7 +843,7 @@ def summary_table():
      'Replace It'
     ], 
     default='No Decision'
-    )
+  )
   #Reorder df columns and sort by forecast %
   df_order = ['Story ID',
             'Channel',
@@ -811,6 +852,7 @@ def summary_table():
             'Test CTR(%)',
             'Topsnap Performance',
             'Hours Running',
+            'Actual Hours Benchmark',
             'Actual % Against Avg',
              'Topsnap Forecast',
              'Forecast Period',
@@ -952,7 +994,7 @@ def update_data():
         -- CAST(story_id AS INT64) story_id_2
     ON cte.title = split.title
     WHERE ranking <= 240
-    AND published_at >= '2022-01-01';''')
+    AND published_at >= current_date - 90;''')
   
     df = pd.read_gbq(sql_query, credentials = credentials)
     return df
@@ -1093,7 +1135,9 @@ if choice == 'Episode Summary':
     about_bar = st.expander("**About This Section**")
     about_bar.markdown("""
                         * Click the 'View Summary Table' below to see metrics and forecasts on all currently running episodes for all Snapchat channels
-                        * "Considerations" are provided based on the current metrics and dynamic scheduling logic, however, it is strongly recommended that you use this table in conjunction with the Topsnap Forecasting tab to make scheduling decisions. 
+                        * "Considerations" are provided based on the current metrics and dynamic scheduling logic, however, it is strongly recommended that you use this table in conjunction with the Topsnap Forecasting tab to make scheduling decisions.
+
+                        **NOTE: If the Channel doesn't appear in the table, then there is simply not enough running hours for its current episode to make a prediction yet - making a dynamic decision at this point would be irrelevant as it would be too early to assess performance regardless** 
                        """)
 
     summary = st.button("View Summary Table")
