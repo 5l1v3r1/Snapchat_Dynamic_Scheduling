@@ -1149,7 +1149,7 @@ if choice == 'Episode Summary':
 
       jscode = JsCode("""
             function(params) {
-                if (params.summary_df.Consideration === 'Investigate - Bearish') {
+                if (params.data.Consideration === 'Investigate - Bearish') {
                     return {
                         'color': 'white',
                         'backgroundColor': 'orange'
