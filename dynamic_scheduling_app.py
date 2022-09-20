@@ -1202,10 +1202,10 @@ if choice == 'Episode Summary':
                                       {
                                         field: 'Forecast % Against Average',
                                         cellClassRules: {
-                                                          '#00e673': 'x >= 1.0',
-                                                          '#66ffb3': 'x >= 0.5',
-                                                          '#BAFFC9': 'x > 0',
-                                                          '#ffc2b3': 'x <= -0.25'
+                                                          'green': 'x >= 1.0',
+                                                          'red': 'x >= 0.5',
+                                                          'blue': 'x > 0',
+                                                          'purple': 'x <= -0.25'
                                                         }
                                       }
                                       ]
@@ -1216,7 +1216,7 @@ if choice == 'Episode Summary':
       gb.configure_side_bar() #Add a sidebar
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
-      gridOptions['getCellStyle'] = jscells
+      gridOptions['cellClassRules'] = jscells
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
