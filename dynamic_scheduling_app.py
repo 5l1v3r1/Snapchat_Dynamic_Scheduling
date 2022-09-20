@@ -1198,16 +1198,36 @@ if choice == 'Episode Summary':
             };
             """)
       
-      jscells = JsCode("""columnDefs: [
-        {
-        field: data['Forecast % Against Average'],
+      jscells = JsCode("""
+      
+      function numberParser(params) {
+        const newValue = params.newValue;
+        let valueAsNumber;
+        if (newValue === null || newValue === undefined || newValue === '') 
+            {valueAsNumber = null;} 
+            
+        else {valueAsNumber = parseFloat(params.newValue);}
+        return valueAsNumber;
+
+        columnDefs: [
+        {field: 'Forecast % Against Average',
+        maxWidth: 90,
+        valueParser: numberParser,
         cellClassRules: {
-            'rag-green-outer': params => params.value >= 1.0,
-            'rag-amber-outer': params => params.value >= 0.5,
-            'rag-red-outer': params => params.value <= -0.25,
+            'green': params => params.value >= 1.0,
+            'yellow': params => params.value >= 0.5,
+            'red': params => params.value <= -0.25,
         }
          }
-          ],
+          ];
+      const gridOptions = {
+      columnDefs: columnDefs,
+      defaultColDef: {
+                    flex: 1,
+                    minWidth: 150,
+                    editable: true,
+                      },
+      };
                       """)
 
       gb = GridOptionsBuilder.from_dataframe(ag_df)
