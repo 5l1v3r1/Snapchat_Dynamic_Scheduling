@@ -1210,8 +1210,7 @@ if choice == 'Episode Summary':
                             fit_columns_on_grid_load=True,
                             data_return_mode='AS_INPUT', 
                             update_mode='MODEL_CHANGED', 
-                            width='100%', 
-                            theme='fresh')
+                            width='100%')
 
      #grid_response
 
