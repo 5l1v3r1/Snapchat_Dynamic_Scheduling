@@ -12,7 +12,7 @@ from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperimen
 from google.oauth2 import service_account
 from google.cloud import bigquery
 
-#from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode, JsCode
 #import js2py
 
 #import streamlit_google_oauth as oauth
@@ -1141,6 +1141,30 @@ if choice == 'Episode Summary':
       st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
       "Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
 
+    ag_chart = st.button("Test AG Grid")
+    if ag_chart:
+      df = update_data()
+      benchmarks = benchmark_data()
+      summary_df = summary_table()
+
+      jscode = JsCode("""
+            function(params) {
+                if (params.summary_df.Consideration === 'Investigate - Bearish') {
+                    return {
+                        'color': 'white',
+                        'backgroundColor': 'orange'
+                    }
+                }
+            };
+            """)
+      
+      gb = GridOptionsBuilder.from_dataframe(summary_df)
+      gridOptions = gb.build()
+      gridOptions['getRowStyle'] = jscode
+      
+      grid_response = AgGrid(summary_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
+
+      st.write(grid_response)
 
 if choice == 'Topsnap Forecast':
     
