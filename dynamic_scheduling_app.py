@@ -1146,14 +1146,14 @@ if choice == 'Episode Summary':
       df = update_data()
       benchmarks = benchmark_data()
       summary_df = summary_table()
-      jscode = "function(params) {
+      jscode = """function(params) {
                 if (params.summary_df.Consideration === 'Investigate - Average') {
                     return {
                         'color': 'black',
                         'backgroundColor': 'yellow'
                     }
                 }
-                };"
+                };"""
       readable = js2py.eval_js(jscode)
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = readable
