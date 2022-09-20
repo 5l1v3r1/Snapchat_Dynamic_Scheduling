@@ -1164,7 +1164,7 @@ if choice == 'Episode Summary':
       
       grid_response = AgGrid(summary_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
 
-      st.write(grid_response)
+      grid_response
 
 if choice == 'Topsnap Forecast':
     
