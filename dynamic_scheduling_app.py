@@ -1147,13 +1147,50 @@ if choice == 'Episode Summary':
       benchmarks = benchmark_data()
       summary_df = summary_table()
 
+      percentages = ['Test CTR(%)', 'Actual % Against Avg', 'Forecast % Against Average']
+      values = ['Topsnap Performance', 'Actual Hours Benchmark', 'Topsnap Forecast', 'Channel Benchmark']
+      for column in percentages:
+        summary_df[column] = summary_df[column].map("{:.2%}".format)
+      for column in values:
+        summary_df[column] = summary_df[column].map("{:,.0f}".format)
+
       jscode = JsCode("""
             function(params) {
+                if (params.data.Consideration === 'Let it Ride') {
+                    return {
+                        'color': 'black',
+                        'backgroundColor': '#BAFFC9'
+                    }
+                }
+                if (params.data.Consideration === 'Investigate - Bullish') {
+                    return {
+                        'color': 'black',
+                        'backgroundColor': '#BAE1FF'
+                    }
+                }
                 if (params.data.Consideration === 'Investigate - Bearish') {
                     return {
                         'color': 'white',
-                        'backgroundColor': 'orange'
+                        'backgroundColor': '#F4A460'
                     }
+                }
+                if (params.data.Consideration === 'Investigate - Average') {
+                    return {
+                        'color': 'black',
+                        'backgroundColor': '#FFFACD'
+                    }  
+                }
+                if (params.data.Consideration === 'Replace It') {
+                    return {
+                        'color': 'white',
+                        'backgroundColor': '#FF6347'
+                    }  
+                }
+                if (params.data.Consideration === 'No Decision') {
+                    return {
+                        'color': 'black',
+                        'backgroundColor': '#F5F5F5'
+                    }  
                 }
             };
             """)
