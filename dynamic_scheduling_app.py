@@ -1199,43 +1199,36 @@ if choice == 'Episode Summary':
             """)
       
       jscells = JsCode("""
-
-        columnDefs: [
-        {field: 'Forecast % Against Average',
-        maxWidth: 90,
-        valueParser: numberParser,
-        cellClassRules: {
-            'green': params => params.value >= 1.0,
-            'yellow': params => params.value >= 0.5,
-            'red': params => params.value <= -0.25,
-        }
-         }
-          ];
-      function numberParser(params) {
-        const newValue = params.newValue;
-        let valueAsNumber;
-        if (newValue === null || newValue === undefined || newValue === '') 
-            {valueAsNumber = null;} 
-            
-        else {valueAsNumber = parseFloat(params.newValue);}
-        return valueAsNumber;}
+            function (params) {
         
-      const gridOptions = {
-      columnDefs: columnDefs,
-      defaultColDef: {
-                    flex: 1,
-                    minWidth: 150,
-                    editable: true,
-                      },
-      };
+            if (params.data['Forecast % Against Average'] >=1.0) {
+                return {
+                        'color': 'white',
+                        'backgroundColor': '#00e673'
+                    }  
+            }
+            if (params.data['Forecast % Against Average'] >=0.5) {
+                return {
+                        'color': 'black',
+                        'backgroundColor': '#66ffb3'
+                    }
+            }
+            if (params.data['Forecast % Against Average'] <=-0.25) {
+                return {
+                        'color': 'black',
+                        'backgroundColor': '#ffc2b3'
+                    }
+            };
                       """)
 
       gb = GridOptionsBuilder.from_dataframe(ag_df)
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
+      gb.configure_column('Forecast % Against Average', cellRenderer=jscells)
+
+
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
-      gridOptions['getCellStyle'] = jscells
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
