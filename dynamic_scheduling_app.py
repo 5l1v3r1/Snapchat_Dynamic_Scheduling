@@ -1155,6 +1155,8 @@ if choice == 'Episode Summary':
                 }
                 };"""
       readable = js2py.eval_js(jscode)
+
+      gb = GridOptionsBuilder.from_dataframe(summary_df)
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = readable
       grid_response = AgGrid(summary_df, gridOptions=gridOptions,allow_unsafe_jscode=True)
