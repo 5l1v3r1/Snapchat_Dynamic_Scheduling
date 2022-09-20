@@ -2,4 +2,5 @@ neuralprophet
 chart_studio
 google-cloud-bigquery
 google-cloud-secret-manager
-pandas-gbq 
+pandas-gbq
+streamlit-aggrid 
