@@ -1209,7 +1209,7 @@ if choice == 'Episode Summary':
                             allow_unsafe_jscode=True,
                             fit_columns_on_grid_load=True,
                             data_return_mode='FILTERED_AND_SORTED', 
-                            update_mode='FILTERING_CHANGED', 
+                            update_mode='NO_UPDATE', 
                             width='100%')
 
      #grid_response
