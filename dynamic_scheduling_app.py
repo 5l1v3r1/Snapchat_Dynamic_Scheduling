@@ -1158,7 +1158,7 @@ if choice == 'Episode Summary':
 
       gb = GridOptionsBuilder.from_dataframe(summary_df)
       gridOptions = gb.build()
-      gridOptions['getRowStyle'] = readable
+      #gridOptions['getRowStyle'] = readable
       grid_response = AgGrid(summary_df, gridOptions=gridOptions,allow_unsafe_jscode=True)
       
       st.write(grid_response)
