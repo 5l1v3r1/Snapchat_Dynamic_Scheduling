@@ -1208,10 +1208,9 @@ if choice == 'Episode Summary':
                             gridOptions=gridOptions, 
                             allow_unsafe_jscode=True,
                             fit_columns_on_grid_load=True,
-                            data_return_mode='FILTERED', 
-                            update_mode='MODEL_CHANGED', 
-                            width='100%', 
-                            reload_data=True)
+                            data_return_mode='FILTERED_AND_SORTED', 
+                            update_mode='FILTERING_CHANGED', 
+                            width='100%')
 
      #grid_response
 
@@ -1229,6 +1228,9 @@ if choice == 'Topsnap Forecast':
                         **NOTE: The number of hours to forecast should always remain at 24 hours or below - a general rule of thumb is that the number of hours forecasted should always be lower than the number of hours we currently have data for**
                        """)
 
+    df = update_data()
+    benchmarks = benchmark_data()
+
     #Choose an episode 
     episode = st.text_input("Enter the Story ID here:", "")
 
@@ -1237,14 +1239,10 @@ if choice == 'Topsnap Forecast':
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
     if forecast_total:
-      df = update_data()
-      benchmarks = benchmark_data()
       st.plotly_chart(forecast_totalview(episode, hours), use_container_width=True)
 
     forecast_daily = st.button("Forecast Topsnaps - Daily View")
     if forecast_daily:
-      df = update_data()
-      benchmarks = benchmark_data()
       st.plotly_chart(forecast_dailyview(episode, hours), use_container_width=True)
 
 if choice == 'ML Test & Validate':
