@@ -1208,7 +1208,7 @@ if choice == 'Episode Summary':
                             gridOptions=gridOptions, 
                             allow_unsafe_jscode=True,
                             fit_columns_on_grid_load=True,
-                            data_return_mode='AS_INPUT', 
+                            data_return_mode='FILTERED', 
                             update_mode='MODEL_CHANGED', 
                             width='100%', 
                             reload_data=True)
