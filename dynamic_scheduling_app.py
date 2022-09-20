@@ -1218,6 +1218,7 @@ if choice == 'Episode Summary':
                         'color': 'black',
                         'backgroundColor': '#ffc2b3'
                     }
+            }
             };
                       """)
 
