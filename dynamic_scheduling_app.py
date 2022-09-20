@@ -51,24 +51,19 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 def forecast_totalview(choose_episode, choose_hours):
   #Load in episode
-  data = df[df['story_id'].isin([choose_episode])]
-  data = data.loc[:, ['interval_time', 'topsnap_views']]
-  data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
-  data = data.drop_duplicates(subset='ds')
-  data = data.astype({'y' : 'int32'})
+  this_episode_df = df[df['story_id'].isin([choose_episode])]
+  this_episode_metrics = this_episode_df.loc[:, ['interval_time', 'topsnap_views']]
+
+  data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
+  #data = data.drop_duplicates(subset='ds')
+  #data = data.astype({'y' : 'int32'})
 
   hours_number = choose_hours - len(data)
   if len(data) > choose_hours:
     hours_number = 0
 
   # Train and load model
-  m = NeuralProphet(num_hidden_layers=2,
-                    d_hidden=4,
-                    seasonality_mode='muplicative',
-                    learning_rate=5.0,
-                    batch_size=50,
-                    loss_func='mse'
-                    )
+  m = tts_model()
   
   metrics = m.fit(data, freq='H')
   
@@ -240,11 +235,12 @@ def forecast_totalview(choose_episode, choose_hours):
 
 def forecast_dailyview(choose_episode, choose_hours):
   #Load in episode
-  data = df[df['story_id'].isin([choose_episode])]
-  data = data.loc[:, ['interval_time', 'topsnap_views']]
-  data = data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
-  data = data.drop_duplicates(subset='ds')
-  data = data.astype({'y' : 'int32'})
+  this_episode_df = df[df['story_id'].isin([choose_episode])]
+  this_episode_metrics = this_episode_df.loc[:, ['interval_time', 'topsnap_views']]
+
+  data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
+  #data = data.drop_duplicates(subset='ds')
+  #data = data.astype({'y' : 'int32'})
 
   hours_number = choose_hours - len(data)
   if len(data) >= choose_hours:
@@ -252,13 +248,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   
   def forecasting():
     # Train and load model
-    m = NeuralProphet(num_hidden_layers=2,
-                    d_hidden=4,
-                  seasonality_mode='muplicative',
-                  learning_rate=5.0,
-                  batch_size=50,
-                  loss_func='mse'
-                  )
+    m = tts_model()
     metrics = m.fit(data, freq='H')
   
     future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
