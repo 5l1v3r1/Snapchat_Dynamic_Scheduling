@@ -895,8 +895,8 @@ def highlight_cells(val):
   return 'background-color: {}'.format(color)
 
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
-#@st.experimental_memo(ttl=1800)
-@st.cache(ttl=1800)
+@st.experimental_memo(ttl=1800)
+#@st.cache(ttl=1800)
 def update_data():
     sql_query = ('''WITH cte AS (SELECT
     non_fin.*,
@@ -992,7 +992,7 @@ def update_data():
     df = pd.read_gbq(sql_query, credentials = credentials)
     return df
 
-@st.cache(ttl=43200)
+@st.experimental_memo(ttl=43200)
 def benchmark_data():
   sql_query2 = ('''WITH cte AS (SELECT
     non_fin.*,
@@ -1199,10 +1199,19 @@ if choice == 'Episode Summary':
             """)
       
       gb = GridOptionsBuilder.from_dataframe(ag_df)
+      gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
+      gb.configure_side_bar() #Add a sidebar
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
       
-      grid_response = AgGrid(ag_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
+      grid_response = AgGrid(ag_df, 
+                            gridOptions=gridOptions, 
+                            allow_unsafe_jscode=True,
+                            fit_columns_on_grid_load=True,
+                            data_return_mode='AS_INPUT', 
+                            update_mode='MODEL_CHANGED', 
+                            width='100%', 
+                            theme='fresh')
 
      #grid_response
 
