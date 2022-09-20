@@ -1160,7 +1160,7 @@ if choice == 'Episode Summary':
       
       gb = GridOptionsBuilder.from_dataframe(summary_df)
       gridOptions = gb.build()
-      gridOptions['getRowStyle'] = jscode
+      #gridOptions['getRowStyle'] = jscode
       
       grid_response = AgGrid(summary_df, gridOptions=gridOptions, allow_unsafe_jscode=True)
 
