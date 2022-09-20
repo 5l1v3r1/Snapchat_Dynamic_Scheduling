@@ -13,6 +13,7 @@ from google.oauth2 import service_account
 from google.cloud import bigquery
 
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode
+import js2py
 
 #import streamlit_google_oauth as oauth
 #import os
@@ -1145,19 +1146,17 @@ if choice == 'Episode Summary':
       df = update_data()
       benchmarks = benchmark_data()
       summary_df = summary_table()
-      
-      jscode = JsCode("""
-            function(params) {
+      jscode = "function(params) {
                 if (params.summary_df.Consideration === 'Investigate - Average') {
                     return {
                         'color': 'black',
                         'backgroundColor': 'yellow'
                     }
                 }
-            };
-            """)
+                };"
+      readable = js2py.eval_js(jscode)
       gridOptions = gb.build()
-      gridOptions['getRowStyle'] = jscode
+      gridOptions['getRowStyle'] = readable
       grid_response = AgGrid(summary_df, gridOptions=gridOptions,allow_unsafe_jscode=True)
       
       st.write(grid_response)

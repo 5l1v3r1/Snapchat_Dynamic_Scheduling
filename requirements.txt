@@ -3,4 +3,5 @@ chart_studio
 google-cloud-bigquery
 google-cloud-secret-manager
 pandas-gbq
-streamlit-aggrid 
+streamlit-aggrid
+js2py
