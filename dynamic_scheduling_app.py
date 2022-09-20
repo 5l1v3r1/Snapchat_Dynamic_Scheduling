@@ -1215,7 +1215,7 @@ if choice == 'Episode Summary':
       gb.configure_side_bar() #Add a sidebar
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
-      gridOptions['getRowStyle'] = jscells
+      gridOptions['getCellStyle'] = jscells
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
