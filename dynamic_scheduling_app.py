@@ -1241,10 +1241,7 @@ if choice == 'Episode Summary':
                       """)
       
       jswrap = JsCode("""defaultColDef:{
-                          flex: 1,
-                          resizable: true,
-                          sortable: true
-                          wrapText: true,     // <-- HERE
+                          wrapText: true,
                           autoHeight: true
                           }
                       """)
