@@ -1242,8 +1242,9 @@ if choice == 'Episode Summary':
       gb = GridOptionsBuilder.from_dataframe(ag_df)
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
-      gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
-      gb.configure_column('Forecast % Against Average', setColumnVisible=false)
+      gb.configure_column('Forecast % Against Avg', hide=True)
+      #gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
+      #gb.configure_column('Forecast % Against Average', setColumnVisible=false)
 
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
