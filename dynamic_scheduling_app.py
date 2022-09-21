@@ -1240,9 +1240,8 @@ if choice == 'Episode Summary':
             };
                       """)
       
-      jswrap = JsCode("""defaultColDef:{
-                          wrapText: true,
-                          autoHeight: true
+      jswrap = JsCode("""{
+                          wrapText: true
                           }
                       """)
 
