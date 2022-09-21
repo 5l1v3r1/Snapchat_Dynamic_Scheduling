@@ -1243,7 +1243,7 @@ if choice == 'Episode Summary':
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
       gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
-      gb.configure_column('Forecast % Against Average', hide=true)
+      gb.configure_column('Forecast % Against Average', suppressColumnsToolPanel=true)
 
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
