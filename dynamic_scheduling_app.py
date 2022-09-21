@@ -1136,13 +1136,13 @@ if choice == 'Episode Summary':
     df = update_data()
     benchmarks = benchmark_data()
 
-    summary = st.button("View Summary Table")
-    if summary:
-      summary_df = summary_table()
-      st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
-      "Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
+    #summary = st.button("View Summary Table")
+    #if summary:
+      #summary_df = summary_table()
+      #st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
+      #"Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
 
-    ag_chart = st.button("Test AG Grid")
+    ag_chart = st.button("View Summary Table")
     if ag_chart:
       ag_df = summary_table()
       ag_df['Forecast % Against Avg'] = ag_df['Forecast % Against Average']
@@ -1153,6 +1153,7 @@ if choice == 'Episode Summary':
       ag_df['Forecast % Against Average'] = ag_df['Forecast % Against Average'].map("{:.2}".format).astype('float')
       for column in percentages:
         ag_df[column] = ag_df[column].map("{:.2%}".format)
+        ag_df[column] = ag_df[column].replace('nan%', np.nan)
       for column in values:
         ag_df[column] = ag_df[column].map("{:,.0f}".format)
 
