@@ -1239,11 +1239,26 @@ if choice == 'Episode Summary':
             }
             };
                       """)
+      
+      df_order = ['Story ID',
+            'Channel',
+            'Episode',
+            'Consideration', 
+            'Test CTR(%)',
+            'Topsnap Performance',
+            'Hours Running',
+            'Actual Hours Benchmark',
+            'Actual % Against Avg',
+             'Topsnap Forecast',
+             'Forecast Period',
+             'Channel Benchmark',
+             'Forecast % Against Avg']
 
       gb = GridOptionsBuilder.from_dataframe(ag_df)
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
-      gb.configure_default_column(wrapHeaderText=true) #wrap column header text
+      
+      gb.configure_columns(df_order, wrapHeaderText=true) #wrap column header text
       gb.configure_column('Forecast % Against Average', hide=True)
       gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
 
