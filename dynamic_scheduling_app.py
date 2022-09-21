@@ -1245,7 +1245,6 @@ if choice == 'Episode Summary':
       gb.configure_side_bar() #Add a sidebar
       gb.configure_column('Forecast % Against Average', hide=True)
       gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
-      #gb.configure_column('Forecast % Against Average', setColumnVisible=false)
 
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
@@ -1254,7 +1253,7 @@ if choice == 'Episode Summary':
                             gridOptions=gridOptions, 
                             allow_unsafe_jscode=True,
                             fit_columns_on_grid_load=True,
-                            data_return_mode='FILTERED_AND_SORTED', 
+                            #data_return_mode='FILTERED_AND_SORTED', 
                             update_mode='NO_UPDATE', 
                             width='100%')
 
