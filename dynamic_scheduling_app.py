@@ -1256,8 +1256,7 @@ if choice == 'Episode Summary':
                             fit_columns_on_grid_load=True,
                             #data_return_mode='FILTERED_AND_SORTED', 
                             update_mode='NO_UPDATE', 
-                            width='100%', 
-                            wrapHeaderText=true)
+                            width='100%')
 
      #grid_response
 
