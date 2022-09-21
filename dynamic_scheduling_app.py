@@ -1243,11 +1243,11 @@ if choice == 'Episode Summary':
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
       gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
-      #gb.configure_column('Forecast % Against Average', suppressColumnsToolPanel=true)
+      gb.configure_column('Forecast % Against Average', setColumnVisible=false)
 
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
-      gridOptions.columnApi.setColumnVisible('Forecast % Against Average', false)
+      #gridOptions.columnApi.setColumnVisible('Forecast % Against Average', false)
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
