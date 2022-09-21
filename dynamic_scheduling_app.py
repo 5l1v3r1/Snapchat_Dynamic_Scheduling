@@ -1212,7 +1212,7 @@ if choice == 'Episode Summary':
                         'backgroundColor': '#66ffb3'
                     }
             }
-            if (params.data['Forecast % Against Average'] > 0 {
+            if (params.data['Forecast % Against Average'] > 0) {
                 return {
                         'color': 'black',
                         'backgroundColor': '#BAFFC9'
