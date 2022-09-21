@@ -1138,22 +1138,21 @@ if choice == 'Episode Summary':
 
     summary = st.button("View Summary Table")
     if summary:
-      #df = update_data()
-      #benchmarks = benchmark_data()
       summary_df = summary_table()
       st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
       "Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
 
     ag_chart = st.button("Test AG Grid")
     if ag_chart:
-      #df = update_data()
-      #benchmarks = benchmark_data()
       ag_df = summary_table()
+      ag_df['Forecast % Against Avg'] = ag_df['Forecast % Against Average']
 
-      percentages = ['Test CTR(%)', 'Actual % Against Avg', 'Forecast % Against Average']
+      percentages = ['Test CTR(%)', 'Actual % Against Avg', 'Forecast % Against Avg']
       values = ['Topsnap Performance', 'Actual Hours Benchmark', 'Topsnap Forecast', 'Channel Benchmark']
+
+      ag_df['Forecast % Against Average'] = ag_df['Forecast % Against Average'].map("{:.2}".format).astype('float')
       for column in percentages:
-        ag_df[column] = ag_df[column].map("{:.2}".format).astype('float')
+        ag_df[column] = ag_df[column].map("{:.2%}".format)
       for column in values:
         ag_df[column] = ag_df[column].map("{:,.0f}".format)
 
@@ -1213,10 +1212,28 @@ if choice == 'Episode Summary':
                         'backgroundColor': '#66ffb3'
                     }
             }
-            if (params.data['Forecast % Against Average'] <=-0.25) {
+            if (params.data['Forecast % Against Average'] > 0 {
+                return {
+                        'color': 'black',
+                        'backgroundColor': '#BAFFC9'
+                    }
+            }
+            if (params.data['Forecast % Against Average'] >=-0.25) {
                 return {
                         'color': 'black',
                         'backgroundColor': '#ffc2b3'
+                    }
+            }
+            if (params.data['Forecast % Against Average'] >=-0.8) {
+                return {
+                        'color': 'black',
+                        'backgroundColor': '#ff8566'
+                    }
+            }
+            if (params.data['Forecast % Against Average'] < -0.8) {
+                return {
+                        'color': 'white',
+                        'backgroundColor': '#ff471a'
                     }
             }
             };
@@ -1225,11 +1242,12 @@ if choice == 'Episode Summary':
       gb = GridOptionsBuilder.from_dataframe(ag_df)
       gb.configure_pagination(paginationAutoPageSize=True) #Add pagination
       gb.configure_side_bar() #Add a sidebar
-      gb.configure_column('Forecast % Against Average', cellStyle=jscells)
-
+      gb.configure_column('Forecast % Against Avg', cellStyle=jscells)
+      gb.configure_column('Forecast % Against Average', hide=true)
 
       gridOptions = gb.build()
       gridOptions['getRowStyle'] = jscode
+      #gridOptions.columnApi.setColumnVisible('Forecast % Against Average', false)
       
       grid_response = AgGrid(ag_df, 
                             gridOptions=gridOptions, 
