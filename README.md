@@ -14,6 +14,7 @@ Predicting the future performance of an episode at incremental periods is valuab
 The current use of this model doesn't leverage the AR-net properties of the model per-se, however its flexibility in hyper-paramter tuning, powerful PyTorch backend, robustness to missing data (uncontrollable due to fluctuation in Snapchat reporting delays), and suitability toward true future forecasting, make for an appropriate model for the task, with good performance results (See Neural_Network Folder). NeuralProphet framework makes it very straightforward to calculate predictions for future dates, whereas the same is not so straightforward when considering other popular options for time-series predictive modelling (such as LSTM for example).
 
 ## Streamlit Dashboard 
+### Summary Table
 ### Dynamic Forecasting 
 
 ### Train & Testing Model 
