@@ -1159,7 +1159,7 @@ if choice == 'Episode Summary':
 
       jscode = JsCode("""
             function(params) {
-                if (params.data.Consideration === 'Let it Ride') {
+                if (params.data.Consideration === 'Let It Ride') {
                     return {
                         'color': 'black',
                         'backgroundColor': '#BAFFC9'
