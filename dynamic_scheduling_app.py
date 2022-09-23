@@ -589,7 +589,7 @@ def summary_table():
   #Get episodes currently running from each channel
   latest = df.loc[df.groupby('name').published_at.idxmax()]
   latest_df = df[df['story_id'].isin(latest.story_id)]
-  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic'])]
+  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith'])]
 
   #Store episode info and create channel dictionary for looping
   channels = latest_df.name.unique()
