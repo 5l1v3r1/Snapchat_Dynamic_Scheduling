@@ -487,13 +487,15 @@ def forecast_dailyview(choose_episode, choose_hours):
 
 def tts_model():
     #Train and Test the  model
-    m = NeuralProphet(daily_seasonality=False,
+    m = NeuralProphet(yearly_seasonality=False, 
+                      weekly_seasonality=False, 
+                      daily_seasonality=False,
                       num_hidden_layers=2,
-                    d_hidden=4,
-                    seasonality_mode='muplicative', 
-                    learning_rate=5.0,
-                    batch_size=50,
-                    loss_func='mse'
+                      d_hidden=4,
+                      seasonality_mode='muplicative', 
+                      learning_rate=5.0,
+                      batch_size=50,
+                      loss_func='mse'
                     )
     return m
 
