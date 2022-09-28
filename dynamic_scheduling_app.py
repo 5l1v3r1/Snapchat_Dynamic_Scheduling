@@ -828,7 +828,7 @@ def summary_table():
      &(final_df['Forecast % Against Average'] >= 1.0) &(final_df['Forecast % Against Average'] < 1.5)
      #Any between 216 and 240 trending 200% or greater 
      |(final_df['Forecast Period'] >= 216) &(final_df['Forecast Period'] <= 240)
-     &(final_df['Forecast % Against Average'] >= 2.0),
+     &(final_df['Forecast % Against Average'] < 2.0) &(final_df['Forecast % Against Average'] >= 1.5),
      
      #Replace It
      #Any; 120 to 168 trending 0% or less
@@ -855,11 +855,14 @@ def summary_table():
      &(final_df['Test CTR(%)'].isna())
      &(final_df['Forecast Period'] ==48)
      &(final_df['Forecast % Against Average']<= -0.5)
-     #Any between 192 and 240 below 100%
-     |(final_df['Forecast Period'] >= 192) &(final_df['Forecast Period'] <= 240)
+     #Any at 192 and below 100%
+     |(final_df['Forecast Period'] == 192)
      &(final_df['Forecast % Against Average'] < 1.0)
+     #Any between 216 and 240 below 150%
+     |(final_df['Forecast Period'] >= 216) &(final_df['Forecast Period'] <= 240)
+     &(final_df['Forecast % Against Average'] < 1.5)
 
-    ], 
+    ],  
 
     ['Let It Ride', 
      'Investigate - Bullish', 
