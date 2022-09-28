@@ -3,6 +3,7 @@ import math
 import pandas as pd
 import numpy as np
 from numpy.ma.core import log
+from datetime import datetime, timedelta
 
 from neuralprophet import NeuralProphet
 import chart_studio.plotly as py
@@ -13,11 +14,6 @@ from google.oauth2 import service_account
 from google.cloud import bigquery
 
 from st_aggrid import GridOptionsBuilder, AgGrid, GridUpdateMode, DataReturnMode, JsCode
-#import js2py
-
-#import streamlit_google_oauth as oauth
-#import os
-#from google.cloud import secretmanager
 
 #Page Configuration 
 st.set_page_config(
@@ -45,7 +41,6 @@ st.markdown(css_background,unsafe_allow_html=True)
 
 # Create API client.
 credentials = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"])
-#client = bigquery.Client(credentials=credentials)
 
 #Ignore warning
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -58,23 +53,43 @@ def forecast_totalview(choose_episode, choose_hours):
   this_episode_metrics = this_episode_df.loc[:, ['interval_time', 'topsnap_views']]
 
   data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
-  #data = data.drop_duplicates(subset='ds')
-  #data = data.astype({'y' : 'int32'})
 
-  hours_number = choose_hours - len(data)
-  if len(data) > choose_hours:
+  #Get actual hours from time window, and actual hours from last value
+  end_time = data['ds'].head(1)+timedelta(hours=choose_hours)
+  last_time = data.tail(1)['ds'].values[0]
+
+  # Get actual hours length 
+  time_length = last_time - data['ds'].head(1)
+  time_length = round(time_length / timedelta(hours=1)).astype('int')
+  time_length = time_length.values[0]
+
+  #Get steps to the actual chosen time window - determine forecasting length
+  answer = end_time-last_time
+  hours_number = round(answer / timedelta(hours=1)).astype('int')
+  hours_number = hours_number.values[0]
+  if time_length > choose_hours:
     hours_number = 0
+  
+  # Get steps to actual time window for retrospective views
+  isolated_endtime = end_time.values[0]
+  retro_window = data.ds.searchsorted(isolated_endtime)
 
   # Train and load model
-  m = tts_model()
+  m = NeuralProphet(num_hidden_layers=2,
+                    d_hidden=4,
+                    seasonality_mode='muplicative', 
+                    learning_rate=5.0,
+                    batch_size=50,
+                    loss_func='mse'
+                    )
   
   metrics = m.fit(data, freq='H')
   
   future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
   prediction = m.predict(future)
 
-  if len(data) > choose_hours:
-    prediction = prediction[:choose_hours]
+  if time_length > choose_hours:
+    prediction = prediction[:retro_window]
 
   #Get Confidence Intervals
   y = prediction['yhat1']
@@ -159,13 +174,13 @@ def forecast_totalview(choose_episode, choose_hours):
   last_24 = round(end-start)
 
   #Get recent 168hr benchmark
-  banger_bench = channel_df.loc[channel_df['ranking'] == 168, ['topsnap_views_total']]
+  banger_bench = channel_df.loc[channel_df['true_hour'] == 168, ['topsnap_views_total']]
   banger_bench = banger_bench['topsnap_views_total'].mean()*2
 
   #Get benchmarks
   def get_benchmarks(choose):
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
-    b_channel = b_channel.loc[b_channel['ranking'] == choose, ['topsnap_views_total']]
+    b_channel = b_channel.loc[b_channel['true_hour'] == choose, ['topsnap_views_total']]
     channel_bench = b_channel['topsnap_views_total'].mean()
     return channel_bench
 
@@ -242,36 +257,54 @@ def forecast_dailyview(choose_episode, choose_hours):
   this_episode_metrics = this_episode_df.loc[:, ['interval_time', 'topsnap_views']]
 
   data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
-  #data = data.drop_duplicates(subset='ds')
-  #data = data.astype({'y' : 'int32'})
 
-  hours_number = choose_hours - len(data)
-  if len(data) >= choose_hours:
+  #Get actual hours from time window, and actual hours from last value
+  end_time = data['ds'].head(1)+timedelta(hours=choose_hours+1)
+  last_time = data.tail(1)['ds'].values[0]
+
+  # Get actual hours length
+  time_length = last_time - data['ds'].head(1)
+  time_length = round(time_length / timedelta(hours=1)).astype('int')
+  time_length = time_length.values[0]
+
+  #Get steps to the actual chosen time window to determine forecasting length
+  answer = end_time-last_time
+  hours_number = round(answer / timedelta(hours=1)).astype('int')
+  hours_number = hours_number.values[0]
+  if time_length > choose_hours:
     hours_number = 0
+  
+  # Get actual starting value for the nearest 24 hour window (for indexing)
+  start_24 = end_time - timedelta(hours=26)
+  test_start = start_24.values[0]
+  final_start24 = data.ds.searchsorted(test_start)
+
+  #Get actual ending value from the historical dataframe (retrospective)
+  test_end = end_time.values[0]
+  final_end = data.ds.searchsorted(test_end)
   
   def forecasting():
     # Train and load model
-    m = tts_model()
+    m = NeuralProphet(num_hidden_layers=2,
+                    d_hidden=4,
+                    seasonality_mode='muplicative', 
+                    learning_rate=5.0,
+                    batch_size=50,
+                    loss_func='mse'
+                    )
     metrics = m.fit(data, freq='H')
   
     future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
     prediction = m.predict(future)
 
     #Daily dataframe
-    show_prediction = prediction.iloc[-25:]
+    daily_end = prediction['ds'].head(1)+timedelta(hours=choose_hours+1)
+    dend_isolated = daily_end.values[0]
+    dend_final = prediction.ds.searchsorted(dend_isolated)
+
+    show_prediction = prediction[final_start24:dend_final]
     show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
     show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
-
-    #if ((len(data) > choose_hours) and (choose_hours == 24)):
-      #show_prediction = prediction[:choose_hours]
-      #show_prediction['y_daily'] = show_prediction['y']
-      #show_prediction['yhat_daily'] = show_prediction['yhat1']
-
-    #elif ((len(data) > choose_hours) and (choose_hours > 24)):
-      #beginning = choose_hours - 24
-      #show_prediction = prediction[beginning:choose_hours]
-      #show_prediction['y_daily'] = ((show_prediction.loc[:, ['y']]) - (show_prediction.loc[:, ['y']].shift(+1))).cumsum()
-      #show_prediction['yhat_daily'] = ((show_prediction.loc[:, ['yhat1']]) - (show_prediction.loc[:, ['yhat1']].shift(+1))).cumsum()
     
     #Get Confidence Intervals
     y = show_prediction['yhat_daily']
@@ -291,7 +324,7 @@ def forecast_dailyview(choose_episode, choose_hours):
     show_prediction['ci'] = 1.96 * show_prediction['running_std'] / np.sqrt(show_prediction['n'])
     show_prediction['yhat_lower'] = show_prediction['yhat_daily'] - show_prediction['ci']
     show_prediction['yhat_upper'] = show_prediction['yhat_daily'] + show_prediction['ci']
-    show_prediction = show_prediction.tail(24)
+    #show_prediction = show_prediction.iloc[1: , :]
 
     return show_prediction
   
@@ -345,9 +378,9 @@ def forecast_dailyview(choose_episode, choose_hours):
   display = "Topsnap Prediction" 
   
   if hours_number == 0:
-    start = choose_hours - 24
-    retro_data = data[start:choose_hours]
+    retro_data = data[final_start24:final_end]
     retro_data['y_daily'] = ((retro_data.loc[:, ['y']]) - (retro_data.loc[:, ['y']].shift(+1))).cumsum()
+    #retro_data = retro_data.iloc[1: , :]
 
     #Construct different layout
     y = go.Scatter(x = retro_data['ds'], 
@@ -395,14 +428,14 @@ def forecast_dailyview(choose_episode, choose_hours):
   #Get benchmarks
   def get_benchmarks(choose):
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
-    b_channel = b_channel.loc[b_channel['ranking'] == choose, ['topsnap_daily_diff']]
+    b_channel = b_channel.loc[b_channel['true_hour'] == choose, ['topsnap_daily_diff']]
     channel_bench = b_channel['topsnap_daily_diff'].mean()
 
     return channel_bench
 
   if choose_hours <= 24:
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
-    b_channel = b_channel.loc[b_channel['ranking'] == 24, ['topsnap_views_total']]
+    b_channel = b_channel.loc[b_channel['true_hour'] == 24, ['topsnap_views_total']]
     channel_bench = b_channel['topsnap_views_total'].mean()
     day = 'Day 1'
 
@@ -452,7 +485,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   #Visualize layout
   fig = go.Figure(data=layout_data, layout=layout)
 
-  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} {display} = <b>{round(last_24):,}</b> ({trending} Avg)<br>{hours_number:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
+  fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} {display} = <b>{round(last_24):,}</b> ({trending} Avg)<br>{hours_number-1:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
                            'x':0.075,
                            'font_size':22})
@@ -462,14 +495,6 @@ def forecast_dailyview(choose_episode, choose_hours):
               annotation_font_size=14,
               annotation_font_color="purple"
              )
-                  
-                  #layout_title_text=(f'{episode_name} - {hours}hr Topsnap Prediction<br>Predicted Topsnaps = {number:,}'))
-  
-  #actual = prediction[:-24]
-  #MAPE = mean_absolute_percentage_error(actual['y'],abs(actual['yhat1']))
-
-  #print('Mean Absolute Percentage Error(MAPE)------------------------------------',MAPE)
-
   return fig
 
 def tts_model():
@@ -620,10 +645,17 @@ def summary_table():
     model_channel = model_channel.drop_duplicates(subset='ds')
     model_channel = model_channel.astype({'y' : 'int32'})
 
+    #Get most recent timestamp
+    last_time = model_channel.tail(1)['ds'].values[0]
+
     #Number of hours running of the current episode
-    data_length = len(model_channel)
+    time_length = last_time - model_channel['ds'].head(1)
+    data_length = round(time_length / timedelta(hours=1)).astype('int')
+    data_length = data_length.values[0]
+
     #Nearest 24-hour window
     ending_hours = round_to_multiple(data_length, 24)
+
     #Number of hours to forecast
     hours = round(ending_hours - data_length)
 
@@ -660,9 +692,9 @@ def summary_table():
     actual_list.append(last_actual)
 
     #Store the channel benchmark at the actual value hour 
-    #actual_bench_df = df[df['name'].isin(channels_dict[key].name)]
-    actual_bench_df = channel_df.loc[channel_df['ranking']==data_length]
-    actual_bench = actual_bench_df['topsnap_views'].mean()
+    actual_bench_df = benchmarks[benchmarks['name'].isin(channels_dict[key].name)]
+    actual_bench = actual_bench_df.loc[actual_bench_df['true_hour']==data_length]
+    actual_bench = actual_bench['topsnap_views_total'].mean()
     actual_benchmark.append(actual_bench)
 
     #Store the final forecasting value
@@ -670,8 +702,8 @@ def summary_table():
     forecast_list.append(forecasts)
 
     #Store the nearest 24 hour benchmark
-    bench = benchmarks[benchmarks['name'].isin(channels_dict[key].name)]
-    bench = bench.loc[bench['ranking'] == ending_hours]
+    #bench = benchmarks[benchmarks['name'].isin(channels_dict[key].name)]
+    bench = actual_bench_df.loc[actual_bench_df['true_hour'] == ending_hours]
     channel_bench = bench['topsnap_views_total'].mean()
     benchmark_list.append(channel_bench)
 
@@ -837,7 +869,7 @@ def summary_table():
     ], 
     default='No Decision'
   )
-  #Reorder df columns and sort by forecast %
+  #Reorder df columns
   df_order = ['Story ID',
             'Channel',
             'Episode',
@@ -852,7 +884,7 @@ def summary_table():
              'Channel Benchmark',
              'Forecast % Against Average']
 
-  #Creat summary df, sort and reset index
+  #Create summary df, sort and reset index
   summary_df = final_df[df_order].sort_values(['Forecast % Against Average'], ascending=False)
   summary_df = summary_df.reset_index().drop(columns=['index'])
 
@@ -998,8 +1030,8 @@ def benchmark_data():
     non_fin.*,
     dense_rank() over(partition by non_fin.story_id order by interval_time) ranking
 
-  FROM
-  ( --- non-financial numbers that are not aggregated
+    FROM
+    ( --- non-financial numbers that are not aggregated
     SELECT 
     name, 
     title,
@@ -1034,8 +1066,8 @@ def benchmark_data():
     unique_viewers unique_viewers_total,
     drop_off_rate
 
-  FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
-  LEFT JOIN  EXTERNAL_QUERY(
+    FROM `distribution-engine.post_time_series.snap_post_metrics_30_minutes_with_diff` hourly
+    LEFT JOIN  EXTERNAL_QUERY(
      "projects/distribution-engine/locations/us/connections/postgres",
      """
     SELECT story_id::TEXT,
@@ -1049,7 +1081,7 @@ def benchmark_data():
                 """
         ) AS pub USING (story_id) 
 
-         LEFT JOIN  EXTERNAL_QUERY(
+    LEFT JOIN  EXTERNAL_QUERY(
      "projects/distribution-engine/locations/us/connections/postgres",
      """
     select
@@ -1057,38 +1089,52 @@ def benchmark_data():
        snap_id,
        ordinal,
        drop_off_rate
-  from snap_studio_story_snap_metric
-  where  ordinal =0;
-                """
+    from snap_studio_story_snap_metric
+    where  ordinal =0
+       """
         ) AS dr USING (story_id) 
-
-
        --where date(interval_time)>current_date - 360 
     order by name, interval_time asc
-    
-    
     ) non_fin
-    ), 
-  cte_2 AS(
-        SELECT name, 
-        title, 
-        published_at, 
-        interval_time,
-        story_id, 
-        ranking,
-  		topsnap_views_diff,
-        topsnap_views_total,
-  		unique_viewers_diff,
-        unique_viewers_total
-        FROM cte
-        WHERE ranking in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240)
-        )
-  SELECT cte_2.*,
-    cte_2.topsnap_views_total - LAG(cte_2.topsnap_views_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) topsnap_daily_diff,
-    cte_2.unique_viewers_total - LAG(cte_2.unique_viewers_total) OVER (PARTITION BY cte_2.name, cte_2.story_id ORDER BY ranking) unique_viewers_daily_diff,
-    split.best_test_ctr 
-  FROM cte_2
-  LEFT JOIN EXTERNAL_QUERY(
+    ),
+    cte_2 AS
+    (SELECT cte.*,
+        DATETIME_DIFF(interval_time, first_hour, HOUR) true_hour
+    FROM cte
+    LEFT JOIN (SELECT       story_id, 
+                        ranking, 
+                        interval_time first_hour
+                FROM cte
+                WHERE ranking = 1) start
+    ON cte.story_id = start.story_id)
+    SELECT cte_2.name, 
+       cte_2.title, 
+       cte_2.published_at, 
+       cte_2.interval_time,
+       cte_2.story_id, 
+       cte_2.true_hour,
+  	   cte_2.topsnap_views_diff,
+       cte_2.topsnap_views_total,
+  	   cte_2.unique_viewers_diff,
+       cte_2.unique_viewers_total,
+       daily.topsnap_views_total - LAG(daily.topsnap_views_total) OVER (PARTITION BY daily.name, daily.story_id ORDER BY daily.true_hour) topsnap_daily_diff,
+       daily.unique_viewers_total - LAG(daily.unique_viewers_total) OVER (PARTITION BY daily.name, daily.story_id ORDER BY daily.true_hour) unique_viewers_daily_diff,
+       split.best_test_ctr 
+    FROM cte_2
+    LEFT JOIN (SELECT name, 
+                  title, 
+                  --published_at, 
+                  interval_time,
+                  story_id, 
+                  true_hour,
+  		          topsnap_views_diff,
+                  topsnap_views_total,
+  		          unique_viewers_diff,
+                  unique_viewers_total
+            FROM cte_2
+            WHERE true_hour in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240))daily
+    ON (cte_2.story_id = daily.story_id) AND (cte_2.true_hour = daily.true_hour)
+    LEFT JOIN EXTERNAL_QUERY(
                             "projects/distribution-engine/locations/us/connections/postgres",
                             """
                             WITH cte AS
@@ -1109,8 +1155,11 @@ def benchmark_data():
                             GROUP BY episode_name
                             """
                         ) AS split
-  ON cte_2.title = split.title
-  WHERE published_at >= current_date - 90;''')
+    ON cte_2.title = split.title
+    WHERE cte_2.published_at >= current_date - 90
+      AND cte_2.true_hour <= 240
+    ORDER BY title ASC, true_hour ASC
+    ;''')
 
   benchmarks = pd.read_gbq(sql_query2, credentials = credentials)
   return benchmarks
