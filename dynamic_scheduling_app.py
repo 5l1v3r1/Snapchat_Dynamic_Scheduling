@@ -75,13 +75,7 @@ def forecast_totalview(choose_episode, choose_hours):
   retro_window = data.ds.searchsorted(isolated_endtime)
 
   # Train and load model
-  m = NeuralProphet(num_hidden_layers=2,
-                    d_hidden=4,
-                    seasonality_mode='muplicative', 
-                    learning_rate=5.0,
-                    batch_size=50,
-                    loss_func='mse'
-                    )
+  m = tts_model()
   
   metrics = m.fit(data, freq='H')
   
@@ -285,13 +279,7 @@ def forecast_dailyview(choose_episode, choose_hours):
   
   def forecasting():
     # Train and load model
-    m = NeuralProphet(num_hidden_layers=2,
-                    d_hidden=4,
-                    seasonality_mode='muplicative', 
-                    learning_rate=5.0,
-                    batch_size=50,
-                    loss_func='mse'
-                    )
+    m = tts_model()
     metrics = m.fit(data, freq='H')
   
     future = m.make_future_dataframe(data, periods=hours_number, n_historic_predictions=len(data)) 
@@ -499,7 +487,8 @@ def forecast_dailyview(choose_episode, choose_hours):
 
 def tts_model():
     #Train and Test the  model
-    m = NeuralProphet(num_hidden_layers=2,
+    m = NeuralProphet(daily_seasonality=False,
+                      num_hidden_layers=2,
                     d_hidden=4,
                     seasonality_mode='muplicative', 
                     learning_rate=5.0,
