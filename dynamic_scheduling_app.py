@@ -684,8 +684,8 @@ def summary_table():
 
     #Store the channel benchmark at the actual value hour 
     actual_bench_df = benchmarks[benchmarks['name'].isin(channels_dict[key].name)]
-    actual_bench = actual_bench_df.loc[actual_bench_df['true_hour']==data_length]
-    actual_bench = actual_bench['topsnap_views_total'].mean()
+    actual_bench_hour = actual_bench_df.loc[actual_bench_df['true_hour']==data_length]
+    actual_bench = actual_bench_hour['topsnap_views_total'].mean()
     actual_benchmark.append(actual_bench)
 
     #Store the final forecasting value
