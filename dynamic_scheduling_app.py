@@ -806,9 +806,9 @@ def summary_table():
      (final_df['Forecast Period']>=72) & (final_df['Forecast Period']<=96)
      &(final_df['Forecast % Against Average'] > -0.25)
      &(final_df['Forecast % Against Average'] < 0.25)
-     #Any; 120 to 168  trending 0-50% above average
+     #Any; 120 to 168  trending 25%-50% above average
      |(final_df['Forecast Period']>=120)&(final_df['Forecast Period']<=168)
-     &(final_df['Forecast % Against Average']> 0) & (final_df['Forecast % Against Average']< 0.5)
+     &(final_df['Forecast % Against Average']>= 0.25) & (final_df['Forecast % Against Average']< 0.5)
      #Non-Shaba; at 48 hours trending anywhere from -25% to +25%
      |(~final_df['Channel'].isin(['What The Fork!?', 'Snacks & Hacks', 'The Shaba Kitchen', 'The Pun Guys']))
      &(final_df['Forecast Period'] == 48)
@@ -822,9 +822,9 @@ def summary_table():
      &(final_df['Forecast % Against Average'] < 2.0) &(final_df['Forecast % Against Average'] >= 1.5),
      
      #Replace It
-     #Any; 120 to 168 trending 0% or less
+     #Any; 120 to 168 trending 25% or less
      (final_df['Forecast Period']>=120) &(final_df['Forecast Period']<=168)
-     &(final_df['Forecast % Against Average']<= 0)
+     &(final_df['Forecast % Against Average']<= 0.25)
      #No CTR at 72 trending below -50% 
      |(final_df['Test CTR(%)'].isna())
      &(final_df['Forecast Period']==72)
