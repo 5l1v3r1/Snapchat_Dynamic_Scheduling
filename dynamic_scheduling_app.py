@@ -822,9 +822,9 @@ def summary_table():
      &(final_df['Forecast % Against Average'] < 2.0) &(final_df['Forecast % Against Average'] >= 1.5),
      
      #Replace It
-     #Any; 120 to 168 trending 25% or less
+     #Any; 120 to 168 trending less than 25%
      (final_df['Forecast Period']>=120) &(final_df['Forecast Period']<=168)
-     &(final_df['Forecast % Against Average']<= 0.25)
+     &(final_df['Forecast % Against Average']< 0.25)
      #No CTR at 72 trending below -50% 
      |(final_df['Test CTR(%)'].isna())
      &(final_df['Forecast Period']==72)
