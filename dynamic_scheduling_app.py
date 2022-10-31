@@ -761,7 +761,7 @@ def summary_table():
 
       # Investigate - Bullish
       #Any; at 120 to 168 trending between 50% and 90%
-      (final_df['Forecast Period']>=120) &(final_df['Forecast Period']>=168)
+      (final_df['Forecast Period']>=120) &(final_df['Forecast Period']<=168)
       &(final_df['Forecast % Against Average']>=0.5) & (final_df['Forecast % Against Average']<=0.9)
       #High CTR between 72 and 96 hours where % is positive and % is increasing (by 0.1)
       |(final_df['Test CTR(%)'] >=0.28)
