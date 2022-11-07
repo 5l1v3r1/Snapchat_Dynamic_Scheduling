@@ -225,9 +225,9 @@ def forecast_totalview(choose_episode, choose_hours):
 
   trending = ((end-channel_bench)/channel_bench)*100
   if trending > 0:
-    trending = f'+{round(trending)}% above'
+    trending = f'+{round(trending):,}% above'
   else:
-    trending = f'{round(trending)}% below'
+    trending = f'{round(trending):,}% below'
 
   fig = go.Figure(data= layout_data, layout=layout)
 
@@ -467,12 +467,12 @@ def forecast_dailyview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(240)
     day = 'Day 10'
 
-  #Perentage% Change for display
+  #Percentage% Change for display
   trending = ((last_24-channel_bench)/channel_bench)*100
   if trending > 0:
-    trending = f'+{round(trending)}% above'
+    trending = f'+{round(trending):,}% above'
   else:
-    trending = f'{round(trending)}% below'
+    trending = f'{round(trending):,}% below'
 
   #Visualize layout
   fig = go.Figure(data=layout_data, layout=layout)
