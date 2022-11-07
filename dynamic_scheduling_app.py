@@ -168,8 +168,12 @@ def forecast_totalview(choose_episode, choose_hours):
   last_24 = round(end-start)
 
   #Get recent 168hr benchmark
-  banger_bench = channel_df.loc[channel_df['true_hour'] == 168, ['topsnap_views_total']]
-  banger_bench = banger_bench['topsnap_views_total'].mean()*2
+  banger_test = channel_df.loc[channel_df['true_hour'] == 168, ['topsnap_views_total']]
+
+  if len(banger_test) == 0:
+    banger_bench = 0
+  else:
+    banger_bench = banger_test['topsnap_views_total'].mean()*2
 
   #Get benchmarks
   def get_benchmarks(choose):
@@ -544,7 +548,10 @@ def crossvalidate_three(tts_episode):
   episode_name = data.head(1)['title'].values[0]
   test = Dataset(df=new_data, name=episode_name, freq='MS')
 
-  params = {"num_hidden_layers": 2,
+  params = {"yearly_seasonality":"False", 
+            "weekly_seasonality":"False", 
+            "daily_seasonality":"False",
+            "num_hidden_layers": 2,
           "d_hidden":4,
           "seasonality_mode":'muplicative',
           "learning_rate":5.0,
@@ -574,7 +581,10 @@ def crossvalidate_five(tts_episode):
   episode_name = data.head(1)['title'].values[0]
   test = Dataset(df=new_data, name=episode_name, freq='MS')
 
-  params = {"num_hidden_layers": 2,
+  params = {"yearly_seasonality":"False", 
+            "weekly_seasonality":"False", 
+            "daily_seasonality":"False",
+            "num_hidden_layers": 2,
           "d_hidden":4,
           "seasonality_mode":'muplicative',
           "learning_rate":5.0,
