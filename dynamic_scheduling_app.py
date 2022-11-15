@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from neuralprophet import NeuralProphet
 import chart_studio.plotly as py
 from plotly import graph_objs as go
-from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
+#from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
 
 from google.oauth2 import service_account
 from google.cloud import bigquery
@@ -45,7 +45,7 @@ credentials = service_account.Credentials.from_service_account_info(st.secrets["
 #Ignore warning
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
-#Creating Functions 
+#Functions 
 
 def forecast_totalview(choose_episode, choose_hours):
   #Load in episode
@@ -584,72 +584,6 @@ def test_metrics(tts_episode):
     final_test = metrics_train.tail(1)
 
     return final_test
-
-def crossvalidate_three(tts_episode):
-  data = df[df['story_id'].isin([tts_episode])]
-  new_data = data.loc[:, ['interval_time', 'topsnap_views']]
-  new_data = new_data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
-  new_data = new_data.drop_duplicates(subset='ds')
-  new_data = new_data.astype({'y' : 'int32'})
-
-  episode_name = data.head(1)['title'].values[0]
-  test = Dataset(df=new_data, name=episode_name, freq='MS')
-
-  params = {"yearly_seasonality":"False", 
-            "weekly_seasonality":"False", 
-            "daily_seasonality":"False",
-            "num_hidden_layers": 2,
-          "d_hidden":4,
-          "seasonality_mode":'muplicative',
-          "learning_rate":5.0,
-          "batch_size":50,
-          "loss_func":'mse'}
-          
-  exp_cv = CrossValidationExperiment(model_class=NeuralProphetModel,
-                                     params=params,
-                                     data=test,
-                                     metrics=["MASE", "MAE", "RMSE"],
-                                     test_percentage=20,
-                                     num_folds=3,
-                                     fold_overlap_pct=0)
-  
-  result_train, result_test = exp_cv.run()
-  dataframe = pd.DataFrame(result_test)
-  
-  return dataframe
-
-def crossvalidate_five(tts_episode):
-  data = df[df['story_id'].isin([tts_episode])]
-  new_data = data.loc[:, ['interval_time', 'topsnap_views']]
-  new_data = new_data.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
-  new_data = new_data.drop_duplicates(subset='ds')
-  new_data = new_data.astype({'y' : 'int32'})
-
-  episode_name = data.head(1)['title'].values[0]
-  test = Dataset(df=new_data, name=episode_name, freq='MS')
-
-  params = {"yearly_seasonality":"False", 
-            "weekly_seasonality":"False", 
-            "daily_seasonality":"False",
-            "num_hidden_layers": 2,
-          "d_hidden":4,
-          "seasonality_mode":'muplicative',
-          "learning_rate":5.0,
-          "batch_size":50,
-          "loss_func":'mse'}
-          
-  exp_cv = CrossValidationExperiment(model_class=NeuralProphetModel,
-                                     params=params,
-                                     data=test,
-                                     metrics=["MASE", "MAE", "RMSE"],
-                                     test_percentage=15,
-                                     num_folds=5,
-                                     fold_overlap_pct=0)
-  
-  result_train, result_test = exp_cv.run()
-  dataframe = pd.DataFrame(result_test)
-  
-  return dataframe
 
 #Summary Table Function 
 
