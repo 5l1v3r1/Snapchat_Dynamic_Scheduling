@@ -54,6 +54,11 @@ def forecast_totalview(choose_episode, choose_hours):
 
   data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
 
+  #Difference between published date and first reported date
+  published_reported = data['ds'].head(1) - this_episode_df['published_at'].head(1)
+  published_reported = round(published_reported / timedelta(hours=1)).astype('int')
+  published_reported = published_reported.values[0]
+
   #Get actual hours from time window, and actual hours from last value
   end_time = data['ds'].head(1)+timedelta(hours=choose_hours)
   last_time = data.tail(1)['ds'].values[0]
@@ -73,6 +78,26 @@ def forecast_totalview(choose_episode, choose_hours):
   # Get steps to actual time window for retrospective views
   isolated_endtime = end_time.values[0]
   retro_window = data.ds.searchsorted(isolated_endtime)
+
+  if published_reported >= 10:
+    end_time = this_episode_df['published_at'].head(1)+timedelta(hours=choose_hours)
+    last_time = data.tail(1)['ds'].values[0]
+  
+    #Actual hours length 
+    time_length = last_time - this_episode_df['published_at'].head(1)
+    time_length = round(time_length / timedelta(hours=1)).astype('int')
+    time_length = time_length.values[0]
+  
+    #Get steps to the actual chosen time window - determine forecasting length
+    answer = end_time-last_time
+    hours_number = round(answer / timedelta(hours=1)).astype('int')
+    hours_number = hours_number.values[0]
+    if time_length > choose_hours:
+      hours_number = 0
+    
+    isolated_endtime = end_time.values[0]
+    #Number of steps (data points) to the correct end time - used for indexing
+    retro_window = data.ds.searchsorted(isolated_endtime)
 
   # Train and load model
   m = tts_model()
@@ -256,6 +281,11 @@ def forecast_dailyview(choose_episode, choose_hours):
 
   data = this_episode_metrics.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'}).drop_duplicates(subset='ds').astype({'y' : 'int32'})
 
+  #Difference between published date and first reported date
+  published_reported = data['ds'].head(1) - this_episode_df['published_at'].head(1)
+  published_reported = round(published_reported / timedelta(hours=1)).astype('int')
+  published_reported = published_reported.values[0]
+
   #Get actual hours from time window, and actual hours from last value
   end_time = data['ds'].head(1)+timedelta(hours=choose_hours+1)
   last_time = data.tail(1)['ds'].values[0]
@@ -271,6 +301,23 @@ def forecast_dailyview(choose_episode, choose_hours):
   hours_number = hours_number.values[0]
   if time_length > choose_hours:
     hours_number = 0
+
+  #Account for large data delays between published and reported data
+  if published_reported >= 10:
+    end_time = this_episode_df['published_at'].head(1)+timedelta(hours=96)
+    last_time = data.tail(1)['ds'].values[0]
+    
+    #Actual hours length 
+    time_length = last_time - this_episode_df['published_at'].head(1)
+    time_length = round(time_length / timedelta(hours=1)).astype('int')
+    time_length = time_length.values[0]
+    
+    #Get steps to the actual chosen time window - determine forecasting length
+    answer = end_time-last_time
+    hours_number = round(answer / timedelta(hours=1)).astype('int')
+    hours_number = hours_number.values[0]
+    if time_length > choose_hours:
+      hours_number = 0
   
   # Get actual starting value for the nearest 24 hour window (for indexing)
   start_24 = end_time - timedelta(hours=26)
@@ -641,10 +688,19 @@ def summary_table():
   for key in channels_dict.keys():
     channels_dict[key] = latest_df[:][latest_df.name == key]
 
+    #Df for Published Date
+    published_df = channels_dict[key]
+
+    #Df for NN
     model_channel = channels_dict[key].loc[:, ['interval_time', 'topsnap_views']]
     model_channel = model_channel.rename(columns = {'interval_time': 'ds', 'topsnap_views':'y'})
     model_channel = model_channel.drop_duplicates(subset='ds')
     model_channel = model_channel.astype({'y' : 'int32'})
+
+    #Difference between published date and first reported date
+    published_reported = model_channel['ds'].head(1) - published_df['published_at'].head(1)
+    published_reported = round(published_reported / timedelta(hours=1)).astype('int')
+    published_reported = published_reported.values[0]
 
     #Get most recent timestamp
     last_time = model_channel.tail(1)['ds'].values[0]
@@ -660,7 +716,16 @@ def summary_table():
     #Number of hours to forecast
     hours = round(ending_hours - data_length)
 
-    #Create and fit model 
+    #Control for large delays in published vs reported data
+    if published_reported >= 10:
+      time_length = last_time - published_df['published_at'].head(1)
+      data_length = round(time_length / timedelta(hours=1)).astype('int')
+      data_length = data_length.values[0]
+
+      ending_hours = round_to_multiple(data_length, 24)
+      hours = round(ending_hours - data_length)
+
+    #Load and Fit model 
     try:
       model = tts_model()
       metrics = model.fit(model_channel, freq="H")
@@ -1189,12 +1254,6 @@ if choice == 'Episode Summary':
     df = update_data()
     benchmarks = benchmark_data()
 
-    #summary = st.button("View Summary Table")
-    #if summary:
-      #summary_df = summary_table()
-      #st.dataframe(summary_df.style.apply(highlight_rows, axis=1).applymap(highlight_cells, subset=['Forecast % Against Average']).format(formatter={"Test CTR(%)": "{:.2%}", "Actual % Against Avg": "{:.2%}", "Forecast % Against Average": "{:.2%}", "Topsnap Performance": "{:,.0f}", 
-      #"Topsnap Forecast": "{:,.0f}", "Actual Hours Benchmark": "{:,.0f}", "Channel Benchmark": "{:,.0f}"}))
-
     ag_chart = st.button("View Summary Table")
     if ag_chart:
       ag_df = summary_table()
@@ -1205,7 +1264,7 @@ if choice == 'Episode Summary':
 
       ag_df['Forecast % Against Average'] = ag_df['Forecast % Against Average'].map("{:.2}".format).astype('float')
       for column in percentages:
-        ag_df[column] = ag_df[column].map("{:.2%}".format)
+        ag_df[column] = ag_df[column].map("{:,.2%}".format)
         ag_df[column] = ag_df[column].replace('nan%', np.nan)
       for column in values:
         ag_df[column] = ag_df[column].map("{:,.0f}".format)
@@ -1372,12 +1431,12 @@ if choice == 'ML Test & Validate':
       model = tts_model()
       st.dataframe(test_metrics(train_episode))
 
-    cross_three = st.button("Cross-validate 3-folds")
-    if cross_three:
-      df = update_data()
-      st.dataframe(crossvalidate_three(train_episode))
+    #cross_three = st.button("Cross-validate 3-folds")
+    #if cross_three:
+      #df = update_data()
+      #st.dataframe(crossvalidate_three(train_episode))
 
-    cross_five = st.button("Cross-validate 5-folds")
-    if cross_five:
-      df = update_data()
-      st.dataframe(crossvalidate_five(train_episode))
+    #cross_five = st.button("Cross-validate 5-folds")
+    #if cross_five:
+      #df = update_data()
+      #st.dataframe(crossvalidate_five(train_episode))
