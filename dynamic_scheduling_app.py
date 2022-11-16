@@ -304,7 +304,7 @@ def forecast_dailyview(choose_episode, choose_hours):
 
   #Account for large data delays between published and reported data
   if published_reported >= 10:
-    end_time = this_episode_df['published_at'].head(1)+timedelta(hours=96)
+    end_time = this_episode_df['published_at'].head(1)+timedelta(hours=choose_hours)
     last_time = data.tail(1)['ds'].values[0]
     
     #Actual hours length 
@@ -367,6 +367,7 @@ def forecast_dailyview(choose_episode, choose_hours):
 
     return show_prediction
   
+  #Construct layout for retrospective figure
   if hours_number == 0:
     retro_data = data[final_start24:final_end]
     retro_data['y_daily'] = ((retro_data.loc[:, ['y']]) - (retro_data.loc[:, ['y']].shift(+1))).cumsum()
@@ -400,8 +401,10 @@ def forecast_dailyview(choose_episode, choose_hours):
     #Topsnap values for display
     number = 0
     last_24 = retro_data.tail(1)['y_daily'].values[0]
-    display = "Topsnap Performance"#Construct layout for forecasting
-
+    display = "Topsnap Performance"
+    
+  
+  #Construct layout for forecasting
   else:
     show_prediction = forecasting()
  
@@ -464,12 +467,11 @@ def forecast_dailyview(choose_episode, choose_hours):
   if ctr is not None:
     ctr = f'{round(ctr*100, 2)}%'
     
-  #Get benchmarks
+  #Get Benchmarks
   def get_benchmarks(choose):
     b_channel = benchmarks[benchmarks['name'].isin(episode_df.name)]
     b_channel = b_channel.loc[b_channel['true_hour'] == choose, ['topsnap_daily_diff']]
     channel_bench = b_channel['topsnap_daily_diff'].mean()
-
     return channel_bench
 
   if choose_hours <= 24:
@@ -514,7 +516,7 @@ def forecast_dailyview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(240)
     day = 'Day 10'
 
-  #Percentage% Change for display
+  #Percentage % Change for display
   trending = ((last_24-channel_bench)/channel_bench)*100
   if trending > 0:
     trending = f'+{round(trending):,}% above'
@@ -892,42 +894,6 @@ def summary_table():
   summary_df = summary_df.reset_index().drop(columns=['index'])
 
   return summary_df
-
-#Create functions for conditional formatting
-#Function for highlighting rows
-def highlight_rows(row):
-  value = row.loc['Consideration']
-  if value == 'Let It Ride':
-    color = '#BAFFC9' #Green
-  elif value == 'Investigate - Bullish':
-    color = '#BAE1FF' #Blue
-  elif value == 'Investigate - Bearish':
-    color = '#F4A460' # sandy brown
-  elif value == 'Investigate - Average':
-    color = '#FFFACD' #Lemon
-  elif value == 'Replace It':
-    color = '#FF6347'#tomato
-  elif value == 'No Decision':
-    color = '#F5F5F5' #white smoke
-  return ['background-color: {}'.format(color) for r in row]
-
-#Function for highlighting cells
-def highlight_cells(val):
-  if val >=1.0:
-    color = '#00e673' #medium dark green
-  elif val >= 0.5:
-    color = '#66ffb3' #medium green
-  elif val > 0:
-    color = '#BAFFC9' #green
-  elif val >= -0.25:
-    color = '#ffc2b3' #lightred 
-  elif val >= -0.80:
-    color = '#ff8566' #tomato
-  elif val < -0.80:
-    color = '#ff471a' #red
-  else:
-    color = '#F5F5F5' #whitesmoke
-  return 'background-color: {}'.format(color)
 
 # Uses st.experimental_memo to only rerun when the query changes or after 30 min.
 @st.experimental_memo(ttl=1800)
