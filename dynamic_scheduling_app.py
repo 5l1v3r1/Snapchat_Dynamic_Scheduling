@@ -367,55 +367,6 @@ def forecast_dailyview(choose_episode, choose_hours):
 
     return show_prediction
   
-  #Construct layout for forecasting
-  show_prediction = forecasting()
- 
-  yhat = go.Scatter(x = show_prediction['ds'], 
-                    y = show_prediction['yhat_daily'],
-                    mode = 'lines',
-                    marker = {'color': 'blue'},
-                    line = {'width': 4},
-                    name = 'Forecast',
-                    )
-  yhat_lower = go.Scatter(x = show_prediction['ds'],
-                          y = show_prediction['yhat_lower'],
-                          marker = {'color': 'powderblue'},
-                          showlegend = False,
-                          #hoverinfo = 'none',
-                          )
-  yhat_upper = go.Scatter(x = show_prediction['ds'],
-                          y = show_prediction['yhat_upper'],
-                          fill='tonexty',
-                          fillcolor = 'powderblue',
-                          name = 'Confidence (95%)',
-                          #hoverinfo = 'yhat_upper',
-                          mode = 'none'
-                          )
-  
-  actual = go.Scatter(x = show_prediction['ds'],
-                      y = show_prediction['y_daily'],
-                      mode = 'markers',
-                      marker = {'color': '#fffaef','size': 10,'line': {'color': '#000000',
-                                                                      'width': 0.8}},
-                      name = 'Actual'
-                      )
-  
-  layout = go.Layout(yaxis = {'title': 'Topsnaps',},
-                     hovermode = 'x',
-                     xaxis = {'title': 'Hours/Days'},
-                     margin = {'t': 20,'b': 50,'l': 60,'r': 10},
-                     legend = {'bgcolor': 'rgba(0,0,0,0)'})
-  
-  layout_data = [yhat_lower, yhat_upper, yhat, actual]
-
-  #Topsnap values for display
-  f_start = show_prediction.dropna().tail(1)['y_daily'].values[0]
-  f_end = show_prediction.tail(1)['yhat_daily'].values[0]
-  number = round(f_end - f_start)
-  last_24 = round(show_prediction.tail(1)['yhat_daily'].values[0])
-
-  display = "Topsnap Prediction" 
-  
   if hours_number == 0:
     retro_data = data[final_start24:final_end]
     retro_data['y_daily'] = ((retro_data.loc[:, ['y']]) - (retro_data.loc[:, ['y']].shift(+1))).cumsum()
@@ -449,8 +400,57 @@ def forecast_dailyview(choose_episode, choose_hours):
     #Topsnap values for display
     number = 0
     last_24 = retro_data.tail(1)['y_daily'].values[0]
-    display = "Topsnap Performance"
-    
+    display = "Topsnap Performance"#Construct layout for forecasting
+
+  else:
+    show_prediction = forecasting()
+ 
+    yhat = go.Scatter(x = show_prediction['ds'], 
+                    y = show_prediction['yhat_daily'],
+                    mode = 'lines',
+                    marker = {'color': 'blue'},
+                    line = {'width': 4},
+                    name = 'Forecast',
+                    )
+    yhat_lower = go.Scatter(x = show_prediction['ds'],
+                          y = show_prediction['yhat_lower'],
+                          marker = {'color': 'powderblue'},
+                          showlegend = False,
+                          #hoverinfo = 'none',
+                          )
+    yhat_upper = go.Scatter(x = show_prediction['ds'],
+                          y = show_prediction['yhat_upper'],
+                          fill='tonexty',
+                          fillcolor = 'powderblue',
+                          name = 'Confidence (95%)',
+                          #hoverinfo = 'yhat_upper',
+                          mode = 'none'
+                          )
+  
+    actual = go.Scatter(x = show_prediction['ds'],
+                      y = show_prediction['y_daily'],
+                      mode = 'markers',
+                      marker = {'color': '#fffaef','size': 10,'line': {'color': '#000000',
+                                                                      'width': 0.8}},
+                      name = 'Actual'
+                      )
+  
+    layout = go.Layout(yaxis = {'title': 'Topsnaps',},
+                     hovermode = 'x',
+                     xaxis = {'title': 'Hours/Days'},
+                     margin = {'t': 20,'b': 50,'l': 60,'r': 10},
+                     legend = {'bgcolor': 'rgba(0,0,0,0)'})
+  
+    layout_data = [yhat_lower, yhat_upper, yhat, actual]
+
+    #Topsnap values for display
+    f_start = show_prediction.dropna().tail(1)['y_daily'].values[0]
+    f_end = show_prediction.tail(1)['yhat_daily'].values[0]
+    number = round(f_end - f_start)
+    last_24 = round(show_prediction.tail(1)['yhat_daily'].values[0])
+
+    display = "Topsnap Prediction" 
+  
   #Get Episode name
   episode_df = df[df['story_id'].isin([choose_episode])]
   episode_name = episode_df.head(1)['title'].values[0]
@@ -596,7 +596,7 @@ def summary_table():
   #Get episodes currently running from each channel
   latest = df.loc[df.groupby('name').published_at.idxmax()]
   latest_df = df[df['story_id'].isin(latest.story_id)]
-  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith'])]
+  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith', 'What The Fact'])]
 
   #Store episode info and create channel dictionary for looping
   channels = latest_df.name.unique()
