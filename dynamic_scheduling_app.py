@@ -248,6 +248,22 @@ def forecast_totalview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(240)
     day = 'Day 10'
 
+  elif ((choose_hours > 240) and (choose_hours <= 264)):
+    channel_bench = get_benchmarks(264)
+    day = 'Day 11'
+
+  elif ((choose_hours > 264) and (choose_hours <= 288)):
+    channel_bench = get_benchmarks(288)
+    day = 'Day 12'
+
+  elif ((choose_hours > 288) and (choose_hours <= 312)):
+    channel_bench = get_benchmarks(312)
+    day = 'Day 13'  
+
+  elif ((choose_hours > 312) and (choose_hours <= 336)):
+    channel_bench = get_benchmarks(336)
+    day = 'Day 14'   
+
   trending = ((end-channel_bench)/channel_bench)*100
   if trending > 0:
     trending = f'+{round(trending):,}% above'
@@ -516,6 +532,22 @@ def forecast_dailyview(choose_episode, choose_hours):
     channel_bench = get_benchmarks(240)
     day = 'Day 10'
 
+  elif ((choose_hours > 240) and (choose_hours <= 264)):
+    channel_bench = get_benchmarks(264)
+    day = 'Day 11'
+
+  elif ((choose_hours > 264) and (choose_hours <= 288)):
+    channel_bench = get_benchmarks(288)
+    day = 'Day 12'
+
+  elif ((choose_hours > 288) and (choose_hours <= 312)):
+    channel_bench = get_benchmarks(312)
+    day = 'Day 13'  
+
+  elif ((choose_hours > 312) and (choose_hours <= 336)):
+    channel_bench = get_benchmarks(336)
+    day = 'Day 14'   
+
   #Percentage % Change for display
   trending = ((last_24-channel_bench)/channel_bench)*100
   if trending > 0:
@@ -768,7 +800,9 @@ def summary_table():
         &(final_df['Forecast % Against Average']>=1.5)
         #Any between 216 and 240
         |(final_df['Forecast Period']>=216) & (final_df['Forecast Period']<=240)
-        &(final_df['Forecast % Against Average']>=2.0),
+        &(final_df['Forecast % Against Average']>=2.0)
+        #Any > 240 and above 300% (4X an average episode)
+        |(final_df['Forecast Period']>240) & (final_df['Forecast % Against Average']>=3.0),
 
       # Investigate - Bullish
       #Any; at 120 to 168 trending between 50% and 90%
@@ -830,7 +864,10 @@ def summary_table():
      &(final_df['Forecast % Against Average'] >= 1.0) &(final_df['Forecast % Against Average'] < 1.5)
      #Any between 216 and 240 trending 200% or greater 
      |(final_df['Forecast Period'] >= 216) &(final_df['Forecast Period'] <= 240)
-     &(final_df['Forecast % Against Average'] < 2.0) &(final_df['Forecast % Against Average'] >= 1.5),
+     &(final_df['Forecast % Against Average'] < 2.0) &(final_df['Forecast % Against Average'] >= 1.5)
+     #Any >240 trending between 200% and 300%
+     |(final_df['Forecast Period'] > 240) 
+     &(final_df['Forecast % Against Average'] >= 2.0) & (final_df['Forecast % Against Average'] < 3.0),
      
      #Replace It
      #Any; 120 to 168 trending less than 25%
@@ -863,6 +900,9 @@ def summary_table():
      #Any between 216 and 240 below 150%
      |(final_df['Forecast Period'] >= 216) &(final_df['Forecast Period'] <= 240)
      &(final_df['Forecast % Against Average'] < 1.5)
+     #Any greater than 240 and trending below 200%
+     |(final_df['Forecast Period'] > 240)
+     &(final_df['Forecast % Against Average'] < 2.0)
 
     ],  
 
@@ -987,7 +1027,7 @@ def update_data():
                         ) AS split       
         -- CAST(story_id AS INT64) story_id_2
     ON cte.title = split.title
-    WHERE ranking <= 240
+    WHERE ranking <= 336
     AND published_at >= current_date - 90;''')
   
     df = pd.read_gbq(sql_query, credentials = credentials)
@@ -1101,7 +1141,7 @@ def benchmark_data():
   		          unique_viewers_diff,
                   unique_viewers_total
             FROM cte_2
-            WHERE true_hour in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240))daily
+            WHERE true_hour in (24, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336))daily
     ON (cte_2.story_id = daily.story_id) AND (cte_2.true_hour = daily.true_hour)
     LEFT JOIN EXTERNAL_QUERY(
                             "projects/distribution-engine/locations/us/connections/postgres",
@@ -1126,7 +1166,7 @@ def benchmark_data():
                         ) AS split
     ON cte_2.title = split.title
     WHERE cte_2.published_at >= current_date - 90
-      AND cte_2.true_hour <= 240
+      AND cte_2.true_hour <= 336
     ORDER BY title ASC, true_hour ASC
     ;''')
 
@@ -1292,7 +1332,7 @@ if choice == 'Topsnap Forecast':
     #Choose an episode 
     episode = st.text_input("Enter the Story ID here:", "")
 
-    hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168', 192:'192', 216:'216', 240:'240'}
+    hour_choices = {24: '24', 48: '48', 72: '72', 96: '96', 120:'120', 144:'144', 168:'168', 192:'192', 216:'216', 240:'240', 264:'264', 288:'288', 312:'312', 336:'336'}
     hours = st.selectbox("Select the hourly window you would like to forecast to", options=list(hour_choices.keys()), format_func = lambda x:hour_choices[x])
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
