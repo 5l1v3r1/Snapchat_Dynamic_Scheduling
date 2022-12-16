@@ -274,8 +274,8 @@ def forecast_totalview(choose_episode, choose_hours):
 
   fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b> ({trending} Avg)<br>{day} Topsnap Prediction = <b>{round(last_24):,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
-                           'x':0.075,
-                           'font_size':22})
+                           'x': 2, #0.075,
+                           'font_size':26 #22})
   fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
                 annotation_text=(f"Channel Avg at {choose_hours}hrs: <b>{round(channel_bench):,}</b>"), 
               annotation_position="bottom right",
