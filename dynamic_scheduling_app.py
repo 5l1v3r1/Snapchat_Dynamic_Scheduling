@@ -274,8 +274,8 @@ def forecast_totalview(choose_episode, choose_hours):
 
   fig.update_layout(title={'text': (f'<b>{episode_name} - {channel_name}</b><br><br><sup>Total Topsnap Prediction = <b>{end:,}</b> ({trending} Avg)<br>{day} Topsnap Prediction = <b>{round(last_24):,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
-                           'x': 2, #0.075,
-                           'font_size':26}) #22})
+                           'x':0.075,
+                           'font_size':22})
   fig.add_hline(y=channel_bench, line_dash="dot", line_color='purple',
                 annotation_text=(f"Channel Avg at {choose_hours}hrs: <b>{round(channel_bench):,}</b>"), 
               annotation_position="bottom right",
@@ -630,7 +630,7 @@ def summary_table():
   #Get episodes currently running from each channel
   latest = df.loc[df.groupby('name').published_at.idxmax()]
   latest_df = df[df['story_id'].isin(latest.story_id)]
-  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith'])]
+  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith', 'What The Fact'])]
 
   #Store episode info and create channel dictionary for looping
   channels = latest_df.name.unique()
