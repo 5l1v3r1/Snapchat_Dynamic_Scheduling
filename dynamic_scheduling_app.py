@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from neuralprophet import NeuralProphet
 import chart_studio.plotly as py
 from plotly import graph_objs as go
-#from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
+from neuralprophet.benchmark import Dataset, NeuralProphetModel, SimpleExperiment, CrossValidationExperiment
 
 from google.oauth2 import service_account
 from google.cloud import bigquery
