@@ -560,7 +560,7 @@ def forecast_dailyview(choose_episode, choose_hours):
 
   fig.update_layout(title={'text': (f'<b>{day} : {episode_name} - {channel_name}</b><br><br><sup>{day} {display} = <b>{round(last_24):,}</b> ({trending} Avg)<br>{hours_number-1:,}hr Topsnap Prediction = <b>{number:,}</b><br>Test CTR = <b>{ctr}</b></sup>'),
                            'y':0.91,
-                           'x':1.2,
+                           'x':0.075,
                            'font_size':22})
   fig.add_hline(y=channel_bench, line_dash="dot", line_color = 'purple',
                 annotation_text=(f"{day} Channel Avg: <b>{round(channel_bench):,}</b>"), 
