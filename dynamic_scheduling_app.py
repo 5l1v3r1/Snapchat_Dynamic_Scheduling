@@ -1108,7 +1108,7 @@ def benchmark_data():
     ),
     cte_2 AS
     (SELECT cte.*,
-        DATETIME_DIFF(interval_time, first_hour, HOUR) true_hour
+        DATETIME_DIFF(interval_time, first_hour, HOUR)+1 true_hour
     FROM cte
     LEFT JOIN (SELECT       story_id, 
                         ranking, 
