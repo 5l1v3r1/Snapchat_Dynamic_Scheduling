@@ -1337,7 +1337,7 @@ if choice == 'Topsnap Forecast':
     
     forecast_total = st.button("Forecast Topsnaps - Total View")
     if forecast_total:
-      st.plotly_chart(forecast_totalview(episode, hours), use_container_width=True)
+      st.plotly_chart(forecast_totalview(episode, hours), use_container_width=True, theme='streamlit')
 
     forecast_daily = st.button("Forecast Topsnaps - Daily View")
     if forecast_daily:
