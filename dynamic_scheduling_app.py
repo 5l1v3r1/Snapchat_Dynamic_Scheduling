@@ -1341,7 +1341,7 @@ if choice == 'Topsnap Forecast':
 
     forecast_daily = st.button("Forecast Topsnaps - Daily View")
     if forecast_daily:
-      st.plotly_chart(forecast_dailyview(episode, hours), use_container_width=True)
+      st.plotly_chart(forecast_dailyview(episode, hours), use_container_width=True, theme=None)
 
 if choice == 'ML Test & Validate':
 
@@ -1354,7 +1354,6 @@ if choice == 'ML Test & Validate':
                         * Use the features below to perform the following:
                             * Plot the training loss of the neural network model
                             * Display test performance (loss, MAE and RMSE)
-                            * Perform 3 and 5 fold cross validation and display metrics (MASE, MAE, RMSE)
                        """)
 
     train_episode = st.text_input("Enter the Story ID here:", "")
