@@ -630,7 +630,7 @@ def summary_table():
   #Get episodes currently running from each channel
   latest = df.loc[df.groupby('name').published_at.idxmax()]
   latest_df = df[df['story_id'].isin(latest.story_id)]
-  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith', 'What The Fact'])]
+  latest_df = latest_df[~latest_df['name'].isin(['Ray Reacts', 'That Was Epic', 'Hacksmith'])]
 
   #Store episode info and create channel dictionary for looping
   channels = latest_df.name.unique()
@@ -1108,7 +1108,7 @@ def benchmark_data():
     ),
     cte_2 AS
     (SELECT cte.*,
-        DATETIME_DIFF(interval_time, first_hour, HOUR)+1 true_hour
+        DATETIME_DIFF(interval_time, first_hour, HOUR) true_hour
     FROM cte
     LEFT JOIN (SELECT       story_id, 
                         ranking, 
