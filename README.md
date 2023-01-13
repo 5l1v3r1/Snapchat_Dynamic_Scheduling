@@ -2,7 +2,7 @@
 *Predicting Snapchat episode performance through a Neural Network*
 
 ## Purpose 
-*This is a replication of a real-world analysis, edited for the suitability of a github repo*
+*This is a replication of a real-world project, edited for the suitability of a github repo*
 
 Through previous analysis, it has been discovered that episodes on a social media platform (such as Snapchat) have their performance thwarted with the following episode's release on channel - with this, scheduling content to reflect performance rather than a weekly set schedule becomes an area of interest, i.e dynamically scheduling episodes to give longer running time to high performers, and cutting off time on platform for low performers.  
 
