@@ -1,5 +1,5 @@
 # Snapchat Dynamic Scheduling 
-*Exploring different timeseries models to predict Snapchat video viewership - namely FB NeuralProphet's AR-Net and BigQuery's AutoARIMA models *
+*Exploring different timeseries models to predict Snapchat video viewership - namely FB NeuralProphet's AR-Net and BigQuery's AutoARIMA models*
 
 ## Purpose 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
@@ -12,6 +12,8 @@ Predicting the future performance of an episode at incremental periods is valuab
 [NeuralProphet (2020)](https://github.com/ourownstory/neural_prophet/?utm_source=hootsuite&utm_medium&utm_term&utm_content&utm_campaign&fbclid=IwAR1G35yRHAhO-UwiuR2UPGKwBlUtU98cJyPxu5vA4P-XTDzgBEwLe5Iq0EA) is an open-source time-series foreasting library released by Meta's Data Science team as an extension of their 2017 release of Facebook Prophet, incoporating auto-regressive (AR) deep-learning to its easy to use & interpretable framework. 
 
 The current use of this model doesn't leverage the AR-net properties due to the better generalizability of the solo neural net for this particular task - yielding better results in many cases (See the Neural_Network Folder), and more substantially, providing more flexibility in its practicality (adding an auto regressive component makes the model more rigid). The NeuralProphet library is also useful in this particular case for a number of other benefits such as its extensiveness in hyper-parameter tuning, powerful PyTorch backend, robustness to missing data (uncontrollable due to fluctuation in Snapchat reporting delays), and suitability toward true future forecasting (See Neural_Network Folder). The NeuralProphet framework makes it very straightforward to calculate predictions for future dates, whereas the same is not so straightforward when considering and testing other popular options for time-series predictive modelling (such as LSTM for example).
+
+## ARIMA, Auto-ARIMA and Statistical Models
 
 ## Streamlit Dashboard 
 ### Summary Table
