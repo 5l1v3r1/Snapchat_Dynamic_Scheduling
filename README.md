@@ -1,5 +1,5 @@
 # Snapchat Dynamic Scheduling 
-*Exploring different timeseries models to predict Snapchat video viewership - namely FB NeuralProphet's AR-Net and BigQuery's AutoARIMA models*
+*Exploring the performance of different timeseries models to predict Snapchat video viewership - namely FB NeuralProphet's AR-Net and BigQuery's AutoARIMA models*
 
 ## Purpose 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
