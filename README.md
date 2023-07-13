@@ -2,7 +2,7 @@
 ## Overview 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
 
-Using Auto-ARIMA timeseries model to forecast social media video viewership performance. Layering PELT change point detection to identify major changes in trends in reference to the model's prediction (offline change detection updated as the timeseries model updates).
+Using Auto-ARIMA timeseries modelling to forecast social media video viewership performance. Layering PELT change point detection to identify major changes in trends in reference to the model's prediction (offline change detection updated as the timeseries model updates).
 
 ## Purpose 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
@@ -39,7 +39,15 @@ The Summary Table can be accessed by pressing the "View Summary Table" button (s
 - 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe). The number of emojis depcits the intensity of said trend. See "Dynamic Forecasting" section for more details.
 
 
-### Dynamic Forecasting 
+### Forecasting + Momentum 
+Forecasting and momentum section offers an opprtunity to dive deeper into the data by plotting the cumulative performance of an episode using the respective story ID and 24 hour window in which we wish to forecast to (from the drop-down selection). The line graph shows the relevant benchmarks as well as areas in which positive or negative change has been detected (offline detection of the nearest 24hour prediction), depicted by 🔥 or 🥶 respectively. 
+
+![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a80f8738-fc43-4699-8c52-a3029bb63483)
+
+Click the "Momentum Table" button to generate a table showcasing performance by day + momentum - a simplfiied, overall depiction of an episode's daily performance since inception:
+
+![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a057c53c-d08d-4c72-9802-454665d6b1d0)
+
 
 ### Train & Testing Model 
 A tab is created for the data team to continually monitor performance of the model with ease. Validating the model through plot loss visualization as well as rendering key performance metrics (Loss, MAE, RMSE) is available with use of the "Plot Loss" and "Test Metrics" buttons. Quick cross-validation is also available using 3 and 5 folds respectively. 
