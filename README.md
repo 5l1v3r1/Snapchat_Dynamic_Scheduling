@@ -4,6 +4,8 @@
 
 Using Auto-ARIMA timeseries modelling to forecast social media video viewership performance. Layering PELT change point detection to identify major changes in trends in reference to the model's prediction (offline change detection updated as the timeseries model updates).
 
+
+
 ## Purpose 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
 
@@ -13,11 +15,15 @@ Predicting the future performance of an episode at incremental periods is valuab
 
 The purpose of this web-app (as an analytics tool) is to help expedite this data-informed process that may otherwise require rigorous analysis daily.
 
+
+
 ## ARIMA
 Auto Regressive Integrated Moving Average using auto regression (p - predicting current value based on previous time periods' values), differencing (d), and error (q) to make future predictions is a widley used statistical technique in timeseries forecasting. The final version of the dynamic scheduling tool leverages BigQuery ML's Auto-ARIMA functionality to make non-seasonal predictions of video viewership performance in hourly intervals. 
 Typically ARIMA models are quite reliable and more effective in making short term forecasting predictions vs other popular techniques such as Exponential Smoothing. Deep Learning options, of course, also exist (first iterations of this model utilizing FB Neural Prophet's AR-Net) but are often over-complicated and perform worse than their statistical counterparts. 
 
 See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) or the Model Performance section for model details.
+
+
 
 ## Streamlit Web-App
 
