@@ -39,7 +39,7 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 - represents how many hours the episode has been running for, its current performance (at that hour) and channel benchmark at that hour
 
 ##### Forecast Section 
-*i.e Fcst Period, Forecast, Fcst Bench, and Fcst % against bench 
+*i.e Fcst Period, Forecast, Fcst Bench, and Fcst % against bench*
 - represents the cumulative predicted performance of the episode at the forecasted hour (nearest 24-hour window), and how that relates to the channel benchmark at the respective forecasted hour.
 
 ##### Trend Sentiment 
@@ -50,15 +50,12 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 
 ### Forecasting + Momentum 
 - Cumulative performance of an episode can be plotted using the respective story ID and 24 hour window in which we wish to forecast to (from the drop-down selection).
-- The cumulative line graph shows the relevant benchmarks as well as areas in which positive or negative change has been detected depicted by 🔥 or 🥶 respectively (offline detection of the nearest 24 hour prediction). 
+- The cumulative line graph shows the relevant benchmarks as well as areas in which positive or negative change has been detected depicted by 🔥 or 🥶 respectively (offline detection of the nearest 24 hour prediction).
+- Historical performance is represented by the dark purple line while forecasted performance is represented by the royal blue. 
 
 ![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a80f8738-fc43-4699-8c52-a3029bb63483)
 
 
-
-- Click the "Momentum Table" button to generate a table showcasing performance by day + momentum - a simplfiied, overall depiction of an episode's daily performance over time since inception:
-
-![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a057c53c-d08d-4c72-9802-454665d6b1d0)
 
 
 
