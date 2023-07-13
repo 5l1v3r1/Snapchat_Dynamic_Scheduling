@@ -13,7 +13,7 @@ Through previous analysis, it has been discovered that episodes on a social medi
 
 Predicting the future performance of an episode at incremental periods is valuable in that it can inform these dynamic scheduling decisions, especially when compared against benchmarks on channel. Furthermore, identifying major changes in trend is useful when looking to make real-time, performance-based scheduling decisions. 
 
-The purpose of this web-app (as an analytics tool) is to help expedite and augment this data-informed process that may otherwise require rigorous analysis daily.
+The purpose of this web-app (as an analytics tool) is to help augment and expedite this data-informed process that may otherwise require rigorous analysis daily.
 
 
 
