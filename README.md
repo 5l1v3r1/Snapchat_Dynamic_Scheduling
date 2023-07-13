@@ -17,6 +17,8 @@ The purpose of this web-app (as an analytics tool) is to help expedite this data
 Auto Regressive Integrated Moving Average using auto regression (p - predicting current value based on previous time periods' values), differencing (d), and error (q) to make future predictions is a widley used statistical technique in timeseries forecasting. The final version of the dynamic scheduling tool leverages BigQuery ML's Auto-ARIMA functionality to make non-seasonal predictions of video viewership performance in hourly intervals. 
 Typically ARIMA models are quite reliable and more effective in making short term forecasting predictions vs other popular techniques such as Exponential Smoothing. Deep Learning options, of course, also exist (first iterations of this model utilizing FB Neural Prophet's AR-Net) but are often over-complicated and perform worse than their statistical counterparts. 
 
+See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) or the Model Performance section for model details.
+
 ## Streamlit Web-App
 
 ### Summary Table
@@ -40,13 +42,17 @@ The Summary Table can be accessed by pressing the "View Summary Table" button (s
 
 
 ### Forecasting + Momentum 
-Forecasting and momentum section offers an opprtunity to dive deeper into the data by plotting the cumulative performance of an episode using the respective story ID and 24 hour window in which we wish to forecast to (from the drop-down selection). The line graph shows the relevant benchmarks as well as areas in which positive or negative change has been detected (offline detection of the nearest 24hour prediction), depicted by 🔥 or 🥶 respectively. 
+Forecasting and momentum section offers an opprtunity to dive deeper into the data by plotting the cumulative performance (Plotly) of an episode using the respective story ID and 24 hour window in which we wish to forecast to (from the drop-down selection). The cumulative line graph shows the relevant benchmarks as well as areas in which positive or negative change has been detected depicted by 🔥 or 🥶 respectively (offline detection of the nearest 24 hour prediction). 
 
 ![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a80f8738-fc43-4699-8c52-a3029bb63483)
 
-Click the "Momentum Table" button to generate a table showcasing performance by day + momentum - a simplfiied, overall depiction of an episode's daily performance since inception:
+
+
+Click the "Momentum Table" button to generate a table showcasing performance by day + momentum - a simplfiied, overall depiction of an episode's daily performance over time since inception:
 
 ![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/a057c53c-d08d-4c72-9802-454665d6b1d0)
+
+
 
 
 ### Train & Testing Model 
