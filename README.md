@@ -1,5 +1,5 @@
 # Snapchat Dynamic Scheduling 
-# Overview 
+## Overview 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
 
 Using Auto-ARIMA timeseries model to forecast social media video viewership performance. Layering PELT change point detection to identify major changes in trends in reference to the model's prediction (offline change detection updated as the timeseries model updates).
@@ -26,17 +26,18 @@ The Summary Table can be accessed by pressing the "View Summary Table" button (s
 
 ![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/efe6eae7-233b-41fc-87b9-c397a64a45db)
 
-#### Current Section 
+##### Current Section 
 *i.e Current Hour, Current Perforance, Current Benchmark and % v Bench*
 - represents how many hours the episode has been running for, its current performance (at that hour) and channel benchmark at that hour
 
-#### Forecast Section 
+##### Forecast Section 
 *i.e Fcst Period, Forecast, Fcst Bench, and Fcst % against bench 
 - represents the cumulative predicted performance of the episode at the forecasted hour (nearest 24-hour window), and how that relates to the channel benchmark at the respective forecasted hour.
 
-#### Trend Sentiment 
+##### Trend Sentiment 
 - the results of the changepoint detection model.
-- 🔥 represents an increase in trend (in a recent time-frame) while a 🥶 represents a decrease in trend (in a recent timeframe). The number of emojis depcits the intensity of said trend. See "Dynamic Forecasting" section for more details.
+- 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe). The number of emojis depcits the intensity of said trend. See "Dynamic Forecasting" section for more details.
+
 
 ### Dynamic Forecasting 
 
