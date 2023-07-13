@@ -26,6 +26,7 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 
 
 ## Streamlit Web-App
+The following web-app utilizes streamlit-cloud to deploy several ML models (Auto-ARIMA; PELT cpd) created from different sources (BQML; Python ruptures) to provide functional, advanced analytics in the form of an internal tool. 
 
 ### Summary Table
 - Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), daily channel performance averages (90-day rolling), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace. Decisions are generated via conditional logic, informed by a combination of the metrics & values mentioned above.
