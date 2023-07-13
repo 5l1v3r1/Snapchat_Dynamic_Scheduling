@@ -18,13 +18,25 @@ Auto Regressive Integrated Moving Average using auto regression (p - predicting 
 Typically ARIMA models are quite reliable and more effective in making short term forecasting predictions vs other popular techniques such as Exponential Smoothing. Deep Learning options, of course, also exist (first iterations of this model utilizing FB Neural Prophet's AR-Net) but are often over-complicated and perform worse than their statistical counterparts. 
 
 ## Streamlit Web-App
-The web app (replication of internal analytics tool) has 3 sections:
-1. the summary table offering a high(er) level view of video performance with recommedations on scheduling decisions includes (combining a series of rules based on collected analytics on forecasting, change point detection, daily "momentum", and hourly benchmarks via conditional logic)
+
 ### Summary Table
-Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace. Decisions are generated via conditional logic, informed by a combination of the metrics & values mentioned above.
+Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), daily channel performance averages (90-day rolling), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace. Decisions are generated via conditional logic, informed by a combination of the metrics & values mentioned above.
+
+The Summary Table can be accessed by pressing the "View Summary Table" button (see picture below). Data is cached periodically to save on computing power, and updated as data in the GCP database is updated.
 
 ![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/efe6eae7-233b-41fc-87b9-c397a64a45db)
 
+#### Current Section 
+*i.e Current Hour, Current Perforance, Current Benchmark and % v Bench*
+- represents how many hours the episode has been running for, its current performance (at that hour) and channel benchmark at that hour
+
+#### Forecast Section 
+*i.e Fcst Period, Forecast, Fcst Bench, and Fcst % against bench 
+- represents the cumulative predicted performance of the episode at the forecasted hour (nearest 24-hour window), and how that relates to the channel benchmark at the respective forecasted hour.
+
+#### Trend Sentiment 
+- the results of the changepoint detection model.
+- 🔥 represents an increase in trend (in a recent time-frame) while a 🥶 represents a decrease in trend (in a recent timeframe). The number of emojis depcits the intensity of said trend. See "Dynamic Forecasting" section for more details.
 
 ### Dynamic Forecasting 
 
