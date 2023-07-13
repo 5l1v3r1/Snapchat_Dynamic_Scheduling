@@ -31,10 +31,11 @@ The following web-app utilizes streamlit-cloud to deploy several ML models (Auto
 
 ### Summary Table
 - Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), daily channel performance averages (90-day rolling), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace. Decisions are generated via conditional logic, informed by a combination of the metrics & values mentioned above.
+- agGrid compatibility provides the ability to filter and select/unselect columns for scalability.
+- Data is cached periodically to save on computing power, and updated as data in the GCP database is updated.
 
-- The Summary Table can be accessed by pressing the "View Summary Table" button (see picture below). Data is cached periodically to save on computing power, and updated as data in the GCP database is updated.
+![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/afac7728-0115-4bb2-9499-f759bc48fa55)
 
-![image](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/assets/79600550/efe6eae7-233b-41fc-87b9-c397a64a45db)
 
 ##### Current Section 
 *i.e Current Hour, Current Perforance, Current Benchmark and % v Bench*
