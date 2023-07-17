@@ -30,7 +30,7 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 The following web-app utilizes streamlit-cloud to deploy several ML models (Auto-ARIMA; PELT cpd) created from different sources (BQML; Python ruptures) to provide functional, advanced analytics in the form of an internal tool. 
 
 ### Data 
-Data is queried from a larger table (API ingestion every half hour) to isolate for the most recent episode for every channel and prepare the set to be loaded into an ARIMA forecasting model. Inclusions are made to ensure that the table is robust to changes in tactic/strategy such as single or multiple episode deletion. See below:
+Data is queried from a larger table in a BQ database (API ingestion every half hour) to isolate for the most recent episode for every channel through a for loop using SQL. Data is simulatneously prepared to be loaded into an auto_ARIMA model in BQ ML by including only necessary columns as well as there are no null date values. Alterations to the query are also made to ensure that the table is robust to changes such as when single or multiple episodes are deleted from the social media channel itself, altering the most up-to-date episode. See below:
 ```
 CREATE OR REPLACE TABLE `insert_table_here` AS
 SELECT CAST(NULL AS TIMESTAMP) filled_time,
@@ -114,7 +114,7 @@ END FOR;
 ##### Forecast Section 
 *i.e Fcst Period, Forecast, Fcst Bench, and Fcst % against bench*
 - represents the cumulative predicted performance of the episode at the forecasted hour (nearest 24-hour window), and how that relates to the channel benchmark at the respective forecasted hour.
-- ARIMA forecast model is compiled in BigQuery ML using the following code (not attached as a sole file):
+- ARIMA forecast model is compiled in BigQuery ML and run on an hourly schedule. See the following code below:
 ```
 CREATE OR REPLACE MODEL `insert_model_name_here`
 OPTIONS(MODEL_TYPE='ARIMA_PLUS',
@@ -135,7 +135,7 @@ ORDER BY story_id_fixed, filled_time ASC;
 ```
 
 ##### Trend Sentiment 
-- Results of the changepoint detection model. The model is compiled in the following function, utilizing the PELT algorithm (Pruned Extract Linear Time) which identifies change points through minimizing a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
+- Results of the changepoint detection model. The model is compiled in the function below, utilizing the PELT algorithm (Pruned Extract Linear Time) which identifies change points through minimizing a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
 
 ```
 def changepoint_df(choose_episode):
