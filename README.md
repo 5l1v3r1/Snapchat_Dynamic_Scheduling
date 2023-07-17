@@ -135,7 +135,7 @@ ORDER BY story_id_fixed, filled_time ASC;
 ```
 
 ##### Trend Sentiment 
-- Results of the changepoint detection model. The model is compiled in the following function, utilizing the PELT algorithm (Pruned Extract Linear Time) idnetifying change points through minimized a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
+- Results of the changepoint detection model. The model is compiled in the following function, utilizing the PELT algorithm (Pruned Extract Linear Time) which identifies change points through minimizing a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
 
 ```
 def changepoint_df(choose_episode):
