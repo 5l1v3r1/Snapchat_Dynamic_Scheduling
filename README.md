@@ -30,7 +30,7 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 The following web-app utilizes streamlit-cloud to deploy several ML models (Auto-ARIMA; PELT cpd) created from different sources (BQML; Python ruptures) to provide functional, advanced analytics in the form of an internal tool. 
 
 ### Data 
-Data is queried from a larger table in a BQ database (API ingestion every half hour) to isolate for the most recent episode for every channel through a for loop using SQL. Data is simulatneously prepared to be loaded into an auto_ARIMA model in BQ ML by including only necessary columns as well as there are no null date values. Alterations to the query are also made to ensure that the table is robust to changes such as when single or multiple episodes are deleted from the social media channel itself, altering the most up-to-date episode. See below:
+Data is queried from a larger table in a BQ database (API ingestion every half hour) to isolate for the most recent episode for every channel through a for loop using SQL. Data transformation is applied to ensure the data is prepared to be loaded into a BQ auto ARIMA model. Alterations to the query are also made (through ranking) to ensure that the table is robust to changes such as when single or multiple episodes are deleted from the social media channel itself, altering the most up-to-date episode. See below:
 ```
 CREATE OR REPLACE TABLE `insert_table_here` AS
 SELECT CAST(NULL AS TIMESTAMP) filled_time,
@@ -135,7 +135,10 @@ ORDER BY story_id_fixed, filled_time ASC;
 ```
 
 ##### Trend Sentiment 
-- Results of the changepoint detection model. The model is compiled in the function below, utilizing the PELT algorithm (Pruned Extract Linear Time) which identifies change points through minimizing a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
+- Results of the changepoint detection model. The model is compiled in the function below, utilizing the PELT (Pruned Extract Linear Time) algorithm which identifies change points through minimizing a penalized sum of costs. Here, a penalty of 6 is used as we want to balance meaningful intepretation with model sensitivity.
+- The first 18 hours are also cut off from interpretation as this is a period to which we always expect to see negative change so this identification wouldn't be very meaningful. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for more details.
+- 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe).
+- The number of emojis depicts the intensity of said trend. See "Forecasting + Momentum" section below for more details.
 
 ```
 def changepoint_df(choose_episode):
@@ -204,14 +207,10 @@ def changepoint_df(choose_episode):
         default=np.nan
   )
 
-  #change_df = current.loc[current['true_hour'] > 24]
   change_df = current.loc[current['true_hour'] > 18]
 
   return change_df
 ```
-
-- 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe).
-- The number of emojis depicts the intensity of said trend. See "Forecasting + Momentum" section below for more details.
 
 
 ### Forecasting + Momentum 
