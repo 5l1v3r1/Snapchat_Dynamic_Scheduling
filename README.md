@@ -135,10 +135,13 @@ ORDER BY story_id_fixed, filled_time ASC;
 ```
 
 ##### Trend Sentiment 
-- Results of the changepoint detection model. The model is compiled in the function below, utilizing the PELT (Pruned Extract Linear Time) algorithm which identifies change points through minimizing a penalized sum of costs. Here, a penalty of 6 is used as we want to balance meaningful intepretation with model sensitivity.
-- The first 18 hours are also cut off from interpretation as this is a period to which we always expect to see negative change so this identification wouldn't be very meaningful. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for more details.
-- 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe).
+- Results of the changepoint detection model.
+ 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe).
 - The number of emojis depicts the intensity of said trend. See "Forecasting + Momentum" section below for more details.
+
+###### Model Details 
+- The model is compiled in the function below, utilizing the PELT (Pruned Extract Linear Time) algorithm which identifies change points through minimizing a penalized sum of costs. Here, a penalty of 6 is used as we want to balance meaningful intepretation with model sensitivity.
+     - The first 18 hours are also cut off from interpretation as this is a period to which we always expect to see negative change so this identification wouldn't be very meaningful. See the code below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for more details.
 
 ```
 def changepoint_df(choose_episode):
