@@ -135,9 +135,83 @@ ORDER BY story_id_fixed, filled_time ASC;
 ```
 
 ##### Trend Sentiment 
-- Results of the changepoint detection model.
+- Results of the changepoint detection model. The model is compiled in the following function, utilizing the PELT algorithm (Pruned Extract Linear Time) idnetifying change points through minimized a penalized sum of costs. Here, we are using a penalty of 6 as we want to balance meaningful intepretation with model sensitivity. See below or [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/main/ds_app_2.py) for details:
+
+```
+def changepoint_df(choose_episode):
+  #identify episode
+  story_id = choose_episode
+
+  channel_df = df[df.story_id.isin([story_id])]
+  history = channel_df.loc[channel_df['forecast_type'] == 'history']
+
+  #Create differences df
+  differences = channel_df.loc[:, ['story_id', 'name','title', 'interval_time', 'topsnap_views', 'forecast_type', 'true_hour']]
+  differences['lag'] = differences['topsnap_views'].shift(+1).fillna(0)
+  differences['topsnap_diff'] = differences['topsnap_views'] - differences['lag']
+
+  #Today
+  tt = pd.Timestamp.today().floor('H')
+  np_today = tt.to_numpy()
+  today = np_today - np.timedelta64(4, 'h')
+
+  last_hour = int(differences.loc[differences['interval_time'] == today, ['true_hour']].values[0])
+  window = round_to_multiple(last_hour, 24)
+
+  current = differences.loc[differences['true_hour'] <= window, ['interval_time', 'topsnap_views', 'topsnap_diff', 'true_hour']]
+
+  #PELT Change point analysis
+  ts  = np.array(current['topsnap_diff'])
+  # Detect the change points
+  algo = rpt.Pelt(model="rbf").fit(ts)
+  change_location = algo.predict(pen=6)
+
+  #Identify true hours for change detection
+  true_hour_changes = []
+
+  for change in change_location:
+    c_true_hour = current.iloc[(change-1), 3]
+    true_hour_changes.append(c_true_hour)
+
+  #Conditional logic to create new field identifying change detection or not
+  current['change_detection'] = np.select(
+      [((current['true_hour'].isin(true_hour_changes[:-1])).astype('bool')),
+      ((~current['true_hour'].isin(true_hour_changes[:-1])).astype('bool'))],
+      ['change detected', np.nan],
+      default=np.nan
+  )
+
+  #Rolling 12-window averages (preceding and following) to compare actual changes and determine direction of change
+  window_size = 12
+  current['rolling_10_preceding'] = current['topsnap_diff'].rolling(window_size, min_periods=1).mean()
+  current['rolling_10_following'] = current['topsnap_diff'].rolling(window_size, min_periods=1).mean().shift(-window_size+1)[::-1]
+
+  #Conditional logic to identify the direction of the change
+  current['direction'] = np.select(
+      [(current['change_detection'].isin(['change detected']))
+      & ((current['rolling_10_following'])>=(current['rolling_10_preceding'])),
+
+      (current['change_detection'].isin(['change detected']))
+      & ((current['rolling_10_following'])<(current['rolling_10_preceding'])),
+
+      (~current['change_detection'].isin(['change detected']))
+      ],
+
+      ['upward change',
+        'downward change',
+        np.nan],
+
+        default=np.nan
+  )
+
+  #change_df = current.loc[current['true_hour'] > 24]
+  change_df = current.loc[current['true_hour'] > 18]
+
+  return change_df
+```
+
 - 🔥 represents an increase in trend (in a recent time-frame - say past 48hrs for example) while a 🥶 represents a decrease in trend (in a recent timeframe).
-- The number of emojis depicts the intensity of said trend. See "Dynamic Forecasting" section for more details.
+- The number of emojis depicts the intensity of said trend. See "Forecasting + Momentum" section below for more details.
 
 
 ### Forecasting + Momentum 
