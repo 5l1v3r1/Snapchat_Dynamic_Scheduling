@@ -2,7 +2,7 @@
 ## Overview 
 *This is a replication of a real-world project, edited for the suitability of a github repo*
 
-Using Auto-ARIMA timeseries modelling to forecast social media video viewership performance. PELT change point detection (ruptures library) is layered on the forecast to identify major changes in trends in reference to actual performance + the model's prediction (offline change detection updated as the timeseries model updates).
+Using Auto-ARIMA timeseries modelling to forecast social media video viewership performance. PELT change point detection (ruptures library) is layered on the forecast to identify major changes in trends in reference to actual performance + the model's prediction (offline change detection updated as the timeseries model updates). Models are deployed via Streamlit Web-app, providing real-time analytics and scheduling recommendations that update hourly.
 
 
 
