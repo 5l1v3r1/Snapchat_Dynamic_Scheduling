@@ -27,7 +27,7 @@ See [ds_app_2.py](https://github.com/a-memme/Snapchat_Dynamic_Scheduling/blob/ma
 
 
 ## Streamlit Web-App
-The following web-app utilizes streamlit-cloud to deploy several ML models (Auto-ARIMA; PELT cpd) created from different sources (BQML; Python ruptures) to provide functional, advanced analytics in the form of an internal tool. 
+The following web-app utilizes streamlit-cloud to deploy several ML models (Auto-ARIMA; PELT cpd) created from different sources (BQML; Python ruptures) to provide functional, advanced analytics in the form of an internal business tool. 
 
 ### Data 
 Data is queried from a larger table in a BQ database (API ingestion every half hour) to isolate for the most recent episode for every channel through a for loop using SQL. Data transformation is applied to ensure the data is prepared to be loaded into a BQ auto ARIMA model. Alterations to the query are also made (through ranking) to ensure that the table is robust to changes such as when single or multiple episodes are deleted from the social media channel itself, altering the most up-to-date episode. See below:
