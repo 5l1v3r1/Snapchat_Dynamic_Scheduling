@@ -100,7 +100,8 @@ END FOR;
 ```
 
 ### Summary Table
-- Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), daily channel performance averages (90-day rolling), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace. Decisions are generated via conditional logic, informed by a combination of the metrics & values mentioned above.
+- Summary table compiles information regarding real-time video performance, timeseries forecasting data, changepoint detection data, daily changes in momentum (24 hour deltas), daily channel performance averages (90-day rolling), and hourly benchmarks to provide a high(er) level view on which episodes to keep running vs which to replace.
+- Decisions are generated via conditional logic, informed by a combination of model outputs, benchmarks, and other metrics of interest.
 - agGrid compatibility provides the ability to filter and select/unselect columns for scalability (episode names and ID's are discluded in the instance below)
 - Data is cached periodically to save on computing power, and updated as data in the GCP database is updated.
 
